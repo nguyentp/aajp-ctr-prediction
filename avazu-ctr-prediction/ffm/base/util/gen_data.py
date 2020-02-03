@@ -18,6 +18,8 @@ args = vars(parser.parse_args())
 
 FIELDS = ['id','click','hour','banner_pos','device_id','device_ip','device_model','device_conn_type','C14','C17','C20','C21']
 NEW_FIELDS = FIELDS+['pub_id','pub_domain','pub_category','device_id_count','device_ip_count','user_count','smooth_user_hour_count','user_click_histroy']
+# Set number of rows for training in case of DEBUG. Set = -1 if train all data
+ROWS_FOR_TRAINING = 4000000
 
 id_cnt = collections.defaultdict(int)
 ip_cnt = collections.defaultdict(int)
@@ -26,8 +28,10 @@ user_hour_cnt = collections.defaultdict(int)
 
 start = time.time()
 
-def scan(path):
+def scan(path, is_train):
     for i, row in enumerate(csv.DictReader(open(path)), start=1):
+        if i >= ROWS_FOR_TRAINING and is_train:
+            break
         if i % 1000000 == 0:
             sys.stderr.write('{0:6.0f}    {1}m\n'.format(time.time()-start,int(i/1000000)))
 
@@ -47,6 +51,8 @@ def gen_data(src_path, dst_app_path, dst_site_path, is_train):
     writer_site.writeheader()
 
     for i, row in enumerate(reader, start=1):
+        if i >= ROWS_FOR_TRAINING and is_train:
+            break
         if i % 1000000 == 0:
             sys.stderr.write('{0:6.0f}    {1}m\n'.format(time.time()-start,int(i/1000000)))
         
@@ -86,10 +92,10 @@ def gen_data(src_path, dst_app_path, dst_site_path, is_train):
             new_row['pub_category'] = row['site_category']
             writer_site.writerow(new_row)
 
-scan(args['tr_src_path'])
-scan(args['va_src_path'])
+scan(args['tr_src_path'], ROWS_FOR_TRAINING != -1)
+scan(args['va_src_path'], False)
 
 print('======================scan complete======================')
 
-gen_data(args['tr_src_path'], args['tr_app_dst_path'], args['tr_site_dst_path'], True)
+gen_data(args['tr_src_path'], args['tr_app_dst_path'], args['tr_site_dst_path'], ROWS_FOR_TRAINING != -1)
 gen_data(args['va_src_path'], args['va_app_dst_path'], args['va_site_dst_path'], False)
