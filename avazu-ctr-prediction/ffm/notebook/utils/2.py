@@ -27,26 +27,15 @@ def convert(src_path, dst_path, is_train):
                 feats.append(hashstr(field+'-'+row[field]))
             feats.append(hashstr('hour-'+row['hour'][-2:]))
 
-            if int(row['device_ip_count']) > 1000:
-                feats.append(hashstr('device_ip-'+row['device_ip']))
-            else:
-                feats.append(hashstr('device_ip-less-'+row['device_ip_count']))
-
-            if int(row['device_id_count']) > 1000:
-                feats.append(hashstr('device_id-'+row['device_id']))
-            else:
-                feats.append(hashstr('device_id-less-'+row['device_id_count']))
-
-            if int(row['smooth_user_hour_count']) > 30:
-                feats.append(hashstr('smooth_user_hour_count-0'))
-            else:
-                feats.append(hashstr('smooth_user_hour_count-'+row['smooth_user_hour_count']))
-
-            if int(row['user_count']) > 30:
-                feats.append(hashstr('user_click_histroy-'+row['user_count']))
-            else:
-                feats.append(hashstr('user_click_histroy-'+row['user_count']+'-'+row['user_click_histroy']))
-
+            # remove device_ip feature
+            
+            # merge count feature and category feature. Make code can be generalized
+            feats.append(hashstr('device_id-'+row['device_id'] + '-' + row['device_id_count']))
+            
+            feats.append(hashstr('smooth_user_hour_count-'+row['smooth_user_hour_count']))
+            
+            feats.append(hashstr('user_click_histroy-'+row['user_count']+'-'+row['user_click_histroy']))
+            
             f.write('{0} {1} {2}\n'.format(row['id'], row['click'], ' '.join(feats)))
 
 convert(args['tr_src_path'], args['tr_dst_path'], True)
