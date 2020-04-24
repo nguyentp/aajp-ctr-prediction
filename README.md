@@ -42,7 +42,6 @@ List of dataset we will use. We can add more later if time allow.
 
 1. [Click-Through Rate Prediction](https://www.kaggle.com/c/avazu-ctr-prediction/data).
 2. [MovieLens 1M Dataset](https://grouplens.org/datasets/movielens/1m/).
-3. [Personalize Expedia Hotel Searche](https://www.kaggle.com/c/expedia-personalized-sort/data).
 
 ## Data Processing
 
