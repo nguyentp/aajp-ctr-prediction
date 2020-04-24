@@ -95,6 +95,21 @@ List of dataset we will use. We can add more later if time allow.
 
 ```
 
+# How to run entire project
+
+1. Setup Environment with Anaconda and Python 3.6.
+2. Install project in Developement mode:
+
+```
+pip install -e .
+```
+
+3. Run main program to get results.
+
+```
+python ./main.py
+```
+
 # Project Developer must know
 
 - Coding Convention:
@@ -102,6 +117,13 @@ List of dataset we will use. We can add more later if time allow.
   - This guide is long. If you are short of time, just read the `Decision` section. Or just read the interesting part.
 - Project structure follow [Cookiecutter Data Science template](https://drivendata.github.io/cookiecutter-data-science/).
 - Use Jupyter Notebook wisely! Notebook are good for Exploration and Communication.
+
+## Some key naming conventions:
+
+- Format source code with UTF-8.
+- Use single quote `'` for string and double quotes `"` for docstring.
+- Use 4 spaces indentions.
+- Use underscore `_` and lowercase to name function, variable, modules. CamelCase for Class.
 
 # Reference
 
