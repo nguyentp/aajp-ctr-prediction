@@ -98,13 +98,20 @@ List of dataset we will use. We can add more later if time allow.
 # How to run entire project
 
 1. Setup Environment with Anaconda and Python 3.6.
-2. Install project in Developement mode:
+2. Download Datasets
+
+```
+chmod 755 download-data.sh
+./download-data.sh
+```
+
+3. Install project in Developement mode:
 
 ```
 pip install -e .
 ```
 
-3. Run main program to get results.
+4. Run main program. Result will be in reports.
 
 ```
 python ./main.py
