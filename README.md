@@ -6,12 +6,9 @@ We will submit this project to FPT SKU repository. To do that, we need below req
 
 ## Quality Requirements
 
-1. Try to develop project in Python and Tensorflow (TF) with Keras API.
-   1. Why TF? It is popular and easy to use. TF supports production better than other frameworks.
-   2. Swich to other framework when there is no efficient implementation in Python and Tensorflow.
-2. Teams in FWI AAA can reference our project for ideas, results and code samples.
-3. Source code is runable, readable and we can extend it or re-write it into other frameworks easily.
-4. Document is clear and well-organized.
+1. Source code is runable, readable and we can extend it or re-write it into other frameworks easily.
+2. Document is clear and well-organized.
+3. Python is main programming language.
 
 ## Technical Requirements
 
