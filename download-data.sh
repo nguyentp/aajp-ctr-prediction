@@ -25,6 +25,8 @@ head -n 1000 ./data/raw/ml-1m/ratings.dat > ./data/raw/ml-1m/sample/rating.dat
 
 gunzip -c ./data/raw/avazu/avazu-ctr-test.gz > ./data/raw/avazu/test
 gunzip -c ./data/raw/avazu/avazu-ctr-train.gz > ./data/raw/avazu/train
+rm ./data/raw/avazu/avazu-ctr-test.gz
+rm ./data/raw/avazu/avazu-ctr-train.gz
 
 head -n 1000 ./data/raw/avazu/train > ./data/raw/avazu/sample/train
 head -n 1000 ./data/raw/avazu/test > ./data/raw/avazu/sample/test
