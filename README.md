@@ -12,6 +12,7 @@ We will submit this project to FPT SKU repository. To do that, we need below req
 
 ## Technical Requirements
 
+- Model explanation at basic level.
 - Report Datasets and how did we preprocessing data.
 - Report Evaluation method and Ranking Metrics.
 - Report Training time and Inference time on batch of data.
@@ -29,7 +30,6 @@ Below are models we use in project, sorted by priority. This is just tentative l
 5. FTRL-Proximal online learning algorithm (FTRL).
 6. Neural Collaborative Filtering (NCF).
 7. Wide & Deep Learning Model (WideDeep).
-8. Bayesian Personalized Ranking (BPR).
 
 # Datasets and Preprocessing
 
@@ -73,7 +73,8 @@ List of dataset we will use. We can add more later if time allow.
     │                         generated with `pip freeze > requirements.txt`
     │
     ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                <- Source code for use in this project.
+    │
+    ├── ajctr              <- Source code for use in this project.
     │   ├── __init__.py    <- Makes src a Python module
     │   │
     │   ├── data           <- Scripts to download or generate data
@@ -87,8 +88,11 @@ List of dataset we will use. We can add more later if time allow.
     │   │   ├── predict_model.py
     │   │   └── train_model.py
     │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
+    │   └── reports  <- Scripts to create exploratory and results oriented visualizations
+    │       └── metrics.py
+    ├── main.py            <- Program Entry point
+    │
+    ├── test               <- Test code
 
 ```
 
