@@ -13,11 +13,10 @@ conda create --name ctr python=3.6 -y && \
     source $HOME/miniconda/etc/profile.d/conda.sh && \
     conda activate ctr && \
     conda install -c conda-forge pandas numpy matplotlib scikit-learn lightgbm notebook -y && \
-    jupyter notebook --generate-config && \
+    jupyter notebook --generate-config -y && \
     echo "c.NotebookApp.password = u'sha1:afe3892d748d:a53857c65f24782b7f97abba4568cefb1d476b9f'" >> ~/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.ip = '*'" >> ~/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.open_browser = False" >> ~/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.port = 8888" >> ~/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.notebook_dir = '/home/ubuntu'" >> ~/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.allow_root = True" >> ~/.jupyter/jupyter_notebook_config.py
-git clone git@github.com:nguyentp/aajp-ctr-prediction.git
