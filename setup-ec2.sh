@@ -2,6 +2,9 @@
 # This script is used to quickly setup conda environment on EC2.
 sudo apt-get update -y
 sudo apt-get install -y tree zip unzip curl
+ssh-keygen -t rsa -b 4096 -N "" -f "/home/ubuntu/.ssh/id_rsa" -C "nguyentp2@fsoft.com.vn" && \
+    eval "$(ssh-agent -s)" && \
+    ssh-add ~/.ssh/id_rsa
 curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     bash ./Miniconda3-latest-Linux-x86_64.sh -u -b -p $HOME/miniconda && \
     rm ./Miniconda3-latest-Linux-x86_64.sh && \
