@@ -21,8 +21,8 @@ def process_avazu(is_debug, raw_path='data/raw/avazu', processed_path='data/proc
         raw_train = os.path.join(raw_path, 'train')
         raw_test = os.path.join(raw_path, 'test')
     
-    add_dummy_label(raw_test, os.path.join(interim_path, "dummy_test"))
-    raw_test = os.path.join(interim_path, "dummy_test")
+    add_dummy_label(raw_test, os.path.join(interim_path, 'dummy_test'))
+    raw_test = os.path.join(interim_path, 'dummy_test')
     
     # add new features
     interim_train = os.path.join(interim_path, 'train')
