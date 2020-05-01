@@ -24,92 +24,118 @@ def add_dummy_label(src_path, dst_path):
             row.insert(1, '0')
         f.writerow(row)
         
-def gen_new_features(src_train_path, src_test_path, dst_train_path, dst_test_path):
-    """Add new features to raw data
+class Preprocess_1:
+    """Module for adding new features to raw data
     
     New features added are:
     - counting features: reference function count_rows_per_feature
     - click history feautres: history each user click to any ads
-    Agrs:
-        src_train/test_path: raw input (train/test) files
-        dst_train/test_path: output (train/test) files after adding features
-    Returns:
-        None
     """
-    # all raw data's fields
-    # EXCEPT 'pub_id', 'pub_domain', 'pub_category', added 'app/site_id', 'app/site_domain', 'app/site_category'
-    FIELDS = ['id','click','hour','banner_pos','device_id','device_ip','device_model','device_conn_type','C14','C17','C20','C21',
-             'app_id', 'app_domain', 'app_category', 'site_id', 'site_domain', 'site_category']
-    # raw data's fields and new features
-    NEW_FIELDS = FIELDS+['device_id_count','device_ip_count','user_count','smooth_user_hour_count','user_click_histroy']
-    
-    history = collections.defaultdict(lambda: {'history': '', 'buffer': '', 'prev_hour': ''})    
-    id_cnt, ip_cnt, user_cnt, user_hour_cnt = _count_rows_per_feature(src_train_path, src_test_path)
-    
-    reader = csv.DictReader(open(src_train_path))
-    writer = csv.DictWriter(open(dst_train_path, 'w'), NEW_FIELDS)
-    writer.writeheader()
+    def __init__(self):
+        # all raw data's fields
+        # EXCEPT 'pub_id', 'pub_domain', 'pub_category', added 'app/site_id', 'app/site_domain', 'app/site_category'
+        self.fields = ['id','click','hour','banner_pos','device_id','device_ip','device_model','device_conn_type',
+                       'C14','C17','C20','C21',
+                       'app_id', 'app_domain', 'app_category', 'site_id', 'site_domain', 'site_category']
+        # raw data's fields and new features
+        self.new_fields = self.fields +['device_id_count','device_ip_count','user_count','smooth_user_hour_count','user_click_histroy']
+        
+        # init count features for counting step in _count_rows_per_feature()
+        self.id_cnt = collections.defaultdict(int)
+        self.ip_cnt = collections.defaultdict(int)
+        self.user_cnt = collections.defaultdict(int)
+        self.user_hour_cnt = collections.defaultdict(int)
+        
+        # init click history features
+        self.history = collections.defaultdict(lambda: {'history': '', 'buffer': '', 'prev_hour': ''})
+        
+    def run(self, src_path, dst_path, is_train):
+        """Main method of this class
 
-    # add new features for TRAIN file
-    for i, row in enumerate(reader, start=1):
-        new_row = {}
-        for field in FIELDS:
-            new_row[field] = row[field]
+        Read existing features from src file,
+        calculate new feature and update to dst file
+        Agrs:
+            src_path: raw input (train/test) files
+            dst_path: output (train/test) files after adding features
+        Returns:
+            None
+        """
+        reader = csv.DictReader(open(src_path))
+        writer = csv.DictWriter(open(dst_path, 'w'), self.new_fields)
+        writer.writeheader()
 
-        new_row['device_id_count'] = id_cnt[row['device_id']]
-        new_row['device_ip_count'] = ip_cnt[row['device_ip']]
+        # add new features for TRAIN file
+        for i, row in enumerate(reader, start=1):
+            new_row = {}
+            for field in self.fields:
+                new_row[field] = row[field]
 
-        user, hour = _def_user(row), row['hour']
-        new_row['user_count'] = user_cnt[user]
-        new_row['smooth_user_hour_count'] = str(user_hour_cnt[user+'-'+hour])
+            new_row['device_id_count'] = self.id_cnt[row['device_id']]
+            new_row['device_ip_count'] = self.ip_cnt[row['device_ip']]
 
-        # add click history feature to this id only
-        if row['device_id'] == 'a99f214a':
+            user, hour = self._def_user(row), row['hour']
+            new_row['user_count'] = self.user_cnt[user]
+            new_row['smooth_user_hour_count'] = str(self.user_hour_cnt[user+'-'+hour])
 
-            if history[user]['prev_hour'] != row['hour']:
-                history[user]['history'] = (history[user]['history'] + history[user]['buffer'])[-4:]
-                history[user]['buffer'] = ''
-                history[user]['prev_hour'] = row['hour']
+            # add click history feature to this id only
+            if row['device_id'] == 'a99f214a':
 
-            new_row['user_click_histroy'] = history[user]['history']
+                if self.history[user]['prev_hour'] != row['hour']:
+                    self.history[user]['history'] = (self.history[user]['history'] + self.history[user]['buffer'])[-4:]
+                    self.history[user]['buffer'] = ''
+                    self.history[user]['prev_hour'] = row['hour']
 
-            history[user]['buffer'] += row['click']
-        else:
-            new_row['user_click_histroy'] = ''
+                new_row['user_click_histroy'] = self.history[user]['history']
+                if is_train:
+                    self.history[user]['buffer'] += row['click']
+            else:
+                new_row['user_click_histroy'] = ''
+
+            writer.writerow(new_row)
             
-        writer.writerow(new_row)
-    
-    # add new features for TEST file
-    reader = csv.DictReader(open(src_test_path))
-    writer = csv.DictWriter(open(dst_test_path, 'w'), NEW_FIELDS)
-    writer.writeheader()
+    def count_rows_per_feature(self, train_path, test_path):
+        """Count number of rows with same ip address
 
-    for i, row in enumerate(reader, start=1):
-        new_row = {}
-        for field in FIELDS:
-            new_row[field] = row[field]
+        For whole train and test data set,
+        count number of rows that have the same for 
+        - id features
+        - ip features
+        - users (Define user as combination of device ip and device model)
+        - users per hours
+        Agrs:
+            train_path: raw train data path
+            test_path: raw test data path
+        Returns:
+            None
+        """
+        # count rows for train data
+        for i, row in enumerate(csv.DictReader(open(train_path)), start=1):
+            user = self._def_user(row)
 
-        new_row['device_id_count'] = id_cnt[row['device_id']]
-        new_row['device_ip_count'] = ip_cnt[row['device_ip']]
+            self.id_cnt[row['device_id']] += 1
+            self.ip_cnt[row['device_ip']] += 1
+            self.user_cnt[user] += 1
+            self.user_hour_cnt[user+'-'+row['hour']] += 1
 
-        user, hour = _def_user(row), row['hour']
-        new_row['user_count'] = user_cnt[user]
-        new_row['smooth_user_hour_count'] = str(user_hour_cnt[user+'-'+hour])
+        # count rows for test data
+        for i, row in enumerate(csv.DictReader(open(test_path)), start=1):
+            user = self._def_user(row)
 
-        # add click history feature to this id only
+            self.id_cnt[row['device_id']] += 1
+            self.ip_cnt[row['device_ip']] += 1
+            self.user_cnt[user] += 1
+            self.user_hour_cnt[user+'-'+row['hour']] += 1
+
+    def _def_user(self, row):
+        """Reference from 3 idiots's solution
+        For specific device id, define user in different way
+        """
         if row['device_id'] == 'a99f214a':
-
-            if history[user]['prev_hour'] != row['hour']:
-                history[user]['history'] = (history[user]['history'] + history[user]['buffer'])[-4:]
-                history[user]['buffer'] = ''
-                history[user]['prev_hour'] = row['hour']
-
-            new_row['user_click_histroy'] = history[user]['history']
-
+            user = 'ip-' + row['device_ip'] + '-' + row['device_model']
         else:
-            new_row['user_click_histroy'] = ''
-            
-        writer.writerow(new_row)
+            user = 'id-' + row['device_id']
+
+        return user
 
 
 def hash_features(src_train_path, src_test_path, dst_train_path, dst_test_path):
@@ -146,56 +172,6 @@ def hash_features(src_train_path, src_test_path, dst_train_path, dst_test_path):
     _delete(dst_train_path, nr_thread)
     _delete(dst_test_path, nr_thread)
 
-def _count_rows_per_feature(train_path, test_path):
-    """Count number of rows with same ip address
-    
-    For whole train and test data set,
-    count number of rows that have the same for 
-    - id features
-    - ip features
-    - users (Define user as combination of device ip and device model)
-    - users per hours
-    Agrs:
-        train_path: raw train data path
-        test_path: raw test data path
-    Returns:
-        a tuple of 4 dictionaries corresponding with above 4 counts
-    """
-    id_cnt = collections.defaultdict(int)
-    ip_cnt = collections.defaultdict(int)
-    user_cnt = collections.defaultdict(int)
-    user_hour_cnt = collections.defaultdict(int)
-    
-    # count rows for train data
-    for i, row in enumerate(csv.DictReader(open(train_path)), start=1):
-        user = _def_user(row)
-            
-        id_cnt[row['device_id']] += 1
-        ip_cnt[row['device_ip']] += 1
-        user_cnt[user] += 1
-        user_hour_cnt[user+'-'+row['hour']] += 1
-        
-    # count rows for test data
-    for i, row in enumerate(csv.DictReader(open(test_path)), start=1):
-        user = _def_user(row)
-        
-        id_cnt[row['device_id']] += 1
-        ip_cnt[row['device_ip']] += 1
-        user_cnt[user] += 1
-        user_hour_cnt[user+'-'+row['hour']] += 1
-    
-    return (id_cnt, ip_cnt, user_cnt, user_hour_cnt)
-
-def _def_user(row):
-    """Reference from 3 idiots's solution
-    For specific device id, define user in different way
-    """
-    if row['device_id'] == 'a99f214a':
-        user = 'ip-' + row['device_ip'] + '-' + row['device_model']
-    else:
-        user = 'id-' + row['device_id']
-
-    return user
 
 def _split(path, nr_thread, has_header=True):
     """Divide 1 large file into multiple small files

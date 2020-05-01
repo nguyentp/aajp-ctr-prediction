@@ -1,5 +1,5 @@
 import os
-from ajctr.features.avazu import add_dummy_label, gen_new_features, hash_features
+from ajctr.features.avazu import add_dummy_label, Preprocess_1, hash_features
 def process_avazu(is_debug, raw_path='data/raw/avazu', processed_path='data/processed/avazu', interim_path='data/interim/avazu'):
     """Full function to extract features from avazu's raw data
     
@@ -27,7 +27,10 @@ def process_avazu(is_debug, raw_path='data/raw/avazu', processed_path='data/proc
     # add new features
     interim_train = os.path.join(interim_path, 'train')
     interim_test = os.path.join(interim_path, 'test')
-    gen_new_features(raw_train, raw_test, interim_train, interim_test)
+    feature_gen = Preprocess_1()
+    feature_gen.count_rows_per_feature(raw_train, raw_test)
+    feature_gen.run(raw_train, interim_train, is_train=True)
+    feature_gen.run(raw_test, interim_test, is_train=False)
     
     # hashing features
     processed_train = os.path.join(processed_path, 'train')
