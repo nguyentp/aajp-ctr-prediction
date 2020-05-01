@@ -4,6 +4,8 @@ import hashlib
 import math
 import os 
 import subprocess
+from multiprocessing import Pool
+import hashlib
 
 def add_dummy_label(src_path, dst_path):
     """Add dummy label for test data
@@ -129,11 +131,8 @@ def hash_features(src_train_path, src_test_path, dst_train_path, dst_test_path):
     _split(path=src_test_path, nr_thread=nr_thread)
     
     # parallelly hashing splited files and save to nr_thread hashed files
-    _parallel_convert(
-        'ajctr/features/avazu_2.py', 
-        [src_train_path, src_test_path, dst_train_path, dst_test_path], 
-        nr_thread
-    )
+    _parallel_convert(src_train_path, dst_train_path, nr_thread)
+    _parallel_convert(src_test_path, dst_test_path, nr_thread)
     
     # delete old splited src files
     _delete(src_train_path, nr_thread)
@@ -242,24 +241,21 @@ def _split(path, nr_thread, has_header=True):
         f.write(line)
     f.close()
     
-def _parallel_convert(cvt_path, arg_paths, nr_thread):
+def _parallel_convert(src_path, dst_path, nr_thread):
     """parallel execute convert script
     Agrs:
-        cvt_path: path of convert script
-        arg_paths: script arguments
+        src_path: path of file before convert
+        dst_path: path of file after convert
         nr_thread: number of paralleling convert
     Returns:
         None
     """
-    workers = []
-    for i in range(nr_thread):
-        cmd = '{0}'.format(os.path.join('.', cvt_path))
-        for path in arg_paths:
-            cmd += ' {0}'.format(path+'.__tmp__.{0}'.format(i))
-        worker = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-        workers.append(worker)
-    for worker in workers:
-        worker.communicate()
+    pool = Pool(processes=nr_thread)
+    tasks = [(src_path + '.__tmp__.{0}'.format(i), 
+              dst_path + '.__tmp__.{0}'.format(i))
+             for i in range(nr_thread)
+            ]
+    pool.map(multi_run_wrapper, tasks)
         
 def _cat(path, nr_thread):
     """Merge multiple small files into 1 large file
@@ -281,4 +277,30 @@ def _delete(path, nr_thread):
     """
     for i in range(nr_thread):
         os.remove('{0}.__tmp__.{1}'.format(path, i))
-        
+
+def multi_run_wrapper(args):
+        return convert(*args)
+    
+def hashstr(input, nr_bins=10000):
+    return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16)%(nr_bins-1)+1)
+
+def convert(src_path, dst_path):
+    fields = ['banner_pos','device_model','device_conn_type','C14','C17','C20','C21',
+         'app_id', 'app_domain', 'app_category', 'site_id', 'site_domain', 'site_category']
+
+    with open(dst_path, 'w') as f:
+        for row in csv.DictReader(open(src_path)):
+            
+            feats = []
+
+            for field in fields:
+                feats.append(hashstr(field+'-'+row[field]))
+            feats.append(hashstr('hour-'+row['hour'][-2:]))
+
+            feats.append(hashstr('device_id-'+row['device_id'] + '-' + row['device_id_count']))
+            
+            feats.append(hashstr('smooth_user_hour_count-'+row['smooth_user_hour_count']))
+            
+            feats.append(hashstr('user_click_histroy-'+row['user_count']+'-'+row['user_click_histroy']))
+            
+            f.write('{0} {1} {2}\n'.format(row['id'], row['click'], ' '.join(feats)))
