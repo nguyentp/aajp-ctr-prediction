@@ -37,7 +37,7 @@ def load_users():
     return load_dat_file(path, headers)
 
 
-def load_movielens():
+def make():
     ratings = load_ratings()
     log.info('ratings shape: {}'.format(ratings.shape))
 
