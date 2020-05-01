@@ -1,4 +1,3 @@
-import csv
 import collections
 import hashlib
 import math
@@ -6,6 +5,7 @@ import os
 import subprocess
 from multiprocessing import Pool
 import hashlib
+from ajctr.helpers import log, csv_writer, csv_reader
 
 def add_dummy_label(src_path, dst_path):
     """Add dummy label for test data
@@ -16,13 +16,13 @@ def add_dummy_label(src_path, dst_path):
     Returns:
         None
     """
-    f = csv.writer(open(dst_path, 'w'))
-    for i, row in enumerate(csv.reader(open(src_path))):
+    writer = csv_writer(dst_path, as_dict=False)
+    for i, row in enumerate(csv_reader(src_path, as_dict=False)):
         if i == 0:
             row.insert(1, 'click')
         else:
             row.insert(1, '0')
-        f.writerow(row)
+        writer.writerow(row)
         
 class Preprocess_1:
     """Module for adding new features to raw data
@@ -60,8 +60,8 @@ class Preprocess_1:
         Returns:
             None
         """
-        reader = csv.DictReader(open(src_path))
-        writer = csv.DictWriter(open(dst_path, 'w'), self.new_fields)
+        reader = csv_reader(src_path)
+        writer = csv_writer(dst_path, headers=self.new_fields)
         writer.writeheader()
 
         # add new features for TRAIN file
@@ -109,7 +109,7 @@ class Preprocess_1:
             None
         """
         # count rows for train data
-        for i, row in enumerate(csv.DictReader(open(train_path)), start=1):
+        for i, row in enumerate(csv_reader(train_path), start=1):
             user = self._def_user(row)
 
             self.id_cnt[row['device_id']] += 1
@@ -118,7 +118,7 @@ class Preprocess_1:
             self.user_hour_cnt[user+'-'+row['hour']] += 1
 
         # count rows for test data
-        for i, row in enumerate(csv.DictReader(open(test_path)), start=1):
+        for i, row in enumerate(csv_reader(test_path), start=1):
             user = self._def_user(row)
 
             self.id_cnt[row['device_id']] += 1
@@ -266,8 +266,7 @@ class Preprocess_2:
             return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16)%(self.nr_bins-1)+1)
 
         with open(dst_path, 'w') as f:
-            for row in csv.DictReader(open(src_path)):
-
+            for i, row in enumerate(csv_reader(src_path), start=1):
                 feats = []
 
                 for field in self.fields:
