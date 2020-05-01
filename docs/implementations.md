@@ -29,7 +29,7 @@
 - Python 
     1. Scipy (scipy.linalg.SVD) 
     2. Numpy (numpy.linalg) 
-    3. Sklearn (sklearn.decomposition.TruncatedSVD, sklearn.utils.extmath.randomized_svd) 
+    3. Scikit-learn (sklearn.decomposition.TruncatedSVD, sklearn.utils.extmath.randomized_svd) 
 - Java 
     1. Jama (https://math.nist.gov/javanumerics/jama/) 
     2. Universal Java Matrix Package (https://ujmp.org/) 
