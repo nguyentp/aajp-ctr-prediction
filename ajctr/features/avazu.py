@@ -137,146 +137,147 @@ class Preprocess_1:
 
         return user
 
-
-def hash_features(src_train_path, src_test_path, dst_train_path, dst_test_path):
-    """Convert category string features to an unique index number
+class Preprocess_2:
+    """Module for converting category string features to an unique index number
     
     To make model be easier to access data feature,
-    this function turns any string sequences into a number to represent for that category.
+    this module turns any string sequences into a number to represent for that category.
     For example: hash(site id-68fd1e64) => 839297, hash(site id-75fg1f15) => 420682
     Agrs:
-        src_train/test_path: input (train/test) file before hashing
-        dst_train/test_path: output (train/test) file after hashing
-    Returns:
-        None
+        nr_thread: number of threads for parallelizing
+        nr_bins: number of category after converting
     """
-    nr_thread = 12
-    
-    # split 1 src file into nr_thread files
-    _split(path=src_train_path, nr_thread=nr_thread)
-    _split(path=src_test_path, nr_thread=nr_thread)
-    
-    # parallelly hashing splited files and save to nr_thread hashed files
-    _parallel_convert(src_train_path, dst_train_path, nr_thread)
-    _parallel_convert(src_test_path, dst_test_path, nr_thread)
-    
-    # delete old splited src files
-    _delete(src_train_path, nr_thread)
-    _delete(src_test_path, nr_thread)
-
-    # merge nr_thread dst files into 1 file
-    _cat(dst_train_path, nr_thread)
-    _cat(dst_test_path, nr_thread)
-
-    # delete old splited dst csv_files
-    _delete(dst_train_path, nr_thread)
-    _delete(dst_test_path, nr_thread)
-
-
-def _split(path, nr_thread, has_header=True):
-    """Divide 1 large file into multiple small files
-    Agrs:
-        path: input large file
-        nr_thread: number of small files
-        has_header: input file has header or not
-    Returns:
-        None
-    """
-    def open_with_first_line_skipped(path, skip=True):
-        f = open(path)
-        if not skip:
-            return f
-        next(f)
-        return f
-
-    def open_with_header_written(path, idx, header):
-        f = open(path+'.__tmp__.{0}'.format(idx), 'w')
-        if not has_header:
-            return f 
-        f.write(header)
-        return f
-
-    def calc_nr_lines_per_thread():
-        nr_lines = int(list(subprocess.Popen('wc -l {0}'.format(path), shell=True, 
-            stdout=subprocess.PIPE).stdout)[0].split()[0])
-        if not has_header:
-            nr_lines += 1 
-        return math.ceil(float(nr_lines)/nr_thread)
-
-    header = open(path).readline()
-
-    nr_lines_per_thread = calc_nr_lines_per_thread()
-
-    idx = 0
-    f = open_with_header_written(path, idx, header)
-    for i, line in enumerate(open_with_first_line_skipped(path, has_header), start=1):
-        if i%nr_lines_per_thread == 0:
-            f.close()
-            idx += 1
-            f = open_with_header_written(path, idx, header)
-        f.write(line)
-    f.close()
-    
-def _parallel_convert(src_path, dst_path, nr_thread):
-    """parallel execute convert script
-    Agrs:
-        src_path: path of file before convert
-        dst_path: path of file after convert
-        nr_thread: number of paralleling convert
-    Returns:
-        None
-    """
-    pool = Pool(processes=nr_thread)
-    tasks = [(src_path + '.__tmp__.{0}'.format(i), 
-              dst_path + '.__tmp__.{0}'.format(i))
-             for i in range(nr_thread)
-            ]
-    pool.map(multi_run_wrapper, tasks)
+    def __init__(self, nr_thread, nr_bins):
+        self.nr_thread = nr_thread
+        self.nr_bins = nr_bins
         
-def _cat(path, nr_thread):
-    """Merge multiple small files into 1 large file
-    Agrs:
-        path: input small files' location
-        nr_thread: number of small files
-    Returns:
-        None
-    """
-    if os.path.exists(path):
-        os.remove(path)
-    for i in range(nr_thread):
-        cmd = 'cat {svm}.__tmp__.{idx} >> {svm}'.format(svm=path, idx=i)
-        p = subprocess.Popen(cmd, shell=True)
-        p.communicate()
-
-def _delete(path, nr_thread):
-    """delete tmp files
-    """
-    for i in range(nr_thread):
-        os.remove('{0}.__tmp__.{1}'.format(path, i))
-
-def multi_run_wrapper(args):
-        return convert(*args)
-    
-def hashstr(input, nr_bins=10000):
-    return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16)%(nr_bins-1)+1)
-
-def convert(src_path, dst_path):
-    fields = ['banner_pos','device_model','device_conn_type','C14','C17','C20','C21',
+        # features need to be convertedß
+        self.fields = ['banner_pos','device_model','device_conn_type','C14','C17','C20','C21',
          'app_id', 'app_domain', 'app_category', 'site_id', 'site_domain', 'site_category']
 
-    with open(dst_path, 'w') as f:
-        for row in csv.DictReader(open(src_path)):
-            
-            feats = []
+    def run(self, src_path, dst_path):
+        """Main method of this class
 
-            for field in fields:
-                feats.append(hashstr(field+'-'+row[field]))
-            feats.append(hashstr('hour-'+row['hour'][-2:]))
+        Conclude below steps:
+        - split 1 large files into multiple small files
+        - parallelly execute converting small files
+        - merge converted small files to 1 large file
+        - delete tmp small files during conversion
+        Agrs:
+            src_path: input file before converting
+            dst_path: output file after converting
+        Returns:
+            None
+        """
+        self._split(src_path)
+        
+        self._parallel_convert(src_path, dst_path)
+        
+        self._cat(dst_path)
 
-            feats.append(hashstr('device_id-'+row['device_id'] + '-' + row['device_id_count']))
-            
-            feats.append(hashstr('smooth_user_hour_count-'+row['smooth_user_hour_count']))
-            
-            feats.append(hashstr('user_click_histroy-'+row['user_count']+'-'+row['user_click_histroy']))
-            
-            f.write('{0} {1} {2}\n'.format(row['id'], row['click'], ' '.join(feats)))
+        self._delete(src_path)
+        self._delete(dst_path)
+
+
+    def _split(self, path, has_header=True):
+        """Divide 1 large file into multiple small files
+        Agrs:
+            path: input large file
+            has_header: input file has header or not
+        Returns:
+            None
+        """
+        def open_with_first_line_skipped(path, skip=True):
+            f = open(path)
+            if not skip:
+                return f
+            next(f)
+            return f
+
+        def open_with_header_written(path, idx, header):
+            f = open(path+'.__tmp__.{0}'.format(idx), 'w')
+            if not has_header:
+                return f 
+            f.write(header)
+            return f
+
+        def calc_nr_lines_per_thread():
+            nr_lines = int(list(subprocess.Popen('wc -l {0}'.format(path), shell=True, 
+                stdout=subprocess.PIPE).stdout)[0].split()[0])
+            if not has_header:
+                nr_lines += 1 
+            return math.ceil(float(nr_lines)/self.nr_thread)
+
+        header = open(path).readline()
+
+        nr_lines_per_thread = calc_nr_lines_per_thread()
+
+        idx = 0
+        f = open_with_header_written(path, idx, header)
+        for i, line in enumerate(open_with_first_line_skipped(path, has_header), start=1):
+            if i%nr_lines_per_thread == 0:
+                f.close()
+                idx += 1
+                f = open_with_header_written(path, idx, header)
+            f.write(line)
+        f.close()
+
+    def _parallel_convert(self, src_path, dst_path):
+        """parallel execute convert script
+        Agrs:
+            src_path: path of file before convert
+            dst_path: path of file after convert
+        Returns:
+            None
+        """
+        pool = Pool(processes=self.nr_thread)
+        tasks = [(src_path + '.__tmp__.{0}'.format(i), 
+                  dst_path + '.__tmp__.{0}'.format(i))
+                 for i in range(self.nr_thread)
+                ]
+        pool.map(self._multi_run_wrapper, tasks)
+
+    def _cat(self, path):
+        """Merge multiple small files into 1 large file
+        Agrs:
+            path: input small files' location
+            nr_thread: number of small files
+        Returns:
+            None
+        """
+        if os.path.exists(path):
+            os.remove(path)
+        for i in range(self.nr_thread):
+            cmd = 'cat {svm}.__tmp__.{idx} >> {svm}'.format(svm=path, idx=i)
+            p = subprocess.Popen(cmd, shell=True)
+            p.communicate()
+
+    def _delete(self, path):
+        """delete tmp files
+        """
+        for i in range(self.nr_thread):
+            os.remove('{0}.__tmp__.{1}'.format(path, i))
+
+    def _multi_run_wrapper(self, args):
+            return self._hash(*args)
+
+    def _hash(self, src_path, dst_path):
+        def hashstr(input):
+            return str(int(hashlib.md5(input.encode('utf8')).hexdigest(), 16)%(self.nr_bins-1)+1)
+
+        with open(dst_path, 'w') as f:
+            for row in csv.DictReader(open(src_path)):
+
+                feats = []
+
+                for field in self.fields:
+                    feats.append(hashstr(field+'-'+row[field]))
+                feats.append(hashstr('hour-'+row['hour'][-2:]))
+
+                feats.append(hashstr('device_id-'+row['device_id'] + '-' + row['device_id_count']))
+
+                feats.append(hashstr('smooth_user_hour_count-'+row['smooth_user_hour_count']))
+
+                feats.append(hashstr('user_click_histroy-'+row['user_count']+'-'+row['user_click_histroy']))
+
+                f.write('{0} {1} {2}\n'.format(row['id'], row['click'], ' '.join(feats)))
