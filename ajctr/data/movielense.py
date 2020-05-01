@@ -9,7 +9,7 @@ _ENCODING = 'ISO-8859-1'
 _PARSE_ENGINE = 'python'
 
 
-def load_ml_file(path, headers):
+def load_dat_file(path, headers):
     return pd.read_csv(
         path,
         sep=_SEP,
@@ -22,19 +22,19 @@ def load_ml_file(path, headers):
 def load_ratings():
     path = pathify('data', 'raw', 'ml-1m', 'ratings.dat')
     headers = 'UserID::MovieID::Rating::Timestamp'.split(_SEP)
-    return load_ml_file(path, headers)
+    return load_dat_file(path, headers)
 
 
 def load_movies():
     path = pathify('data', 'raw', 'ml-1m', 'movies.dat')
     headers = 'MovieID::Title::Genres'.split(_SEP)
-    return load_ml_file(path, headers)
+    return load_dat_file(path, headers)
 
 
 def load_users():
     path = pathify('data', 'raw', 'ml-1m', 'users.dat')
     headers = 'UserID::Gender::Age::Occupation::Zip-code'.split(_SEP)
-    return load_ml_file(path, headers)
+    return load_dat_file(path, headers)
 
 
 def load_movielens():
