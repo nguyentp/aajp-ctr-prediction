@@ -18,5 +18,6 @@ def make_and_save_avazu():
     pass
 
 def make():
+    log.info('For movielens')
     make_and_save_movielens()
     make_and_save_avazu()

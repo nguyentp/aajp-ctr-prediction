@@ -4,25 +4,43 @@ import math
 import os 
 import subprocess
 from multiprocessing import Pool
-import hashlib
-from ajctr.helpers import log, csv_writer, csv_reader
+import pandas as pd
+from ajctr.helpers import log, csv_writer, csv_reader, pathify
 
-def add_dummy_label(src_path, dst_path):
-    """Add dummy label for test data
-    
-    Args:
-        src_path: raw path for test data
-        dst_path: output path with dummy label
-    Returns:
-        None
+def make(is_debug=True):
+    """Full function to extract features from avazu's raw data    
     """
-    writer = csv_writer(dst_path, as_dict=False)
-    for i, row in enumerate(csv_reader(src_path, as_dict=False)):
-        if i == 0:
-            row.insert(1, 'click')
-        else:
-            row.insert(1, '0')
-        writer.writerow(row)
+    if is_debug:
+        raw_train = pathify('data', 'raw', 'avazu', 'sample', 'train')
+    else:
+        raw_train = pathify('data', 'raw', 'avazu', 'train')
+    
+    # add new features
+    interim_train_1 = pathify('data', 'interim', 'avazu_1.csv')
+    
+    feature_gen = Preprocess_1()
+    feature_gen.count_rows_per_feature(raw_train)
+    feature_gen.run(raw_train, interim_train_1, is_train=True)
+    
+    # hashing features
+    interim_train_2 = pathify('data', 'interim', 'avazu_2.csv')
+    
+    hashing = Preprocess_2(nr_thread=12, nr_bins=1000000)
+    hashing.run(interim_train_1, interim_train_2)
+    
+    # load as pandas's dataframe and return x, y
+    fields = [
+        'id',
+        'Click',
+        'feature_0','feature_1','feature_2','feature_3','feature_4','feature_5','feature_6','feature_7', 'feature_8',
+        'feature_9','feature_10','feature_11','feature_12','feature_13','feature_14','feature_15', 'feature_16'
+    ]
+    
+    avazu = pd.read_csv(pathify('data', 'interim', 'avazu_2.csv'), header=None, names=fields, sep=' ')
+    y = avazu['Click'].values.reshape(-1, 1)
+    x = avazu.drop(['id', 'Click'], axis=1)
+    return x, y
+    
         
 class Preprocess_1:
     """Module for adding new features to raw data
@@ -93,7 +111,7 @@ class Preprocess_1:
 
             writer.writerow(new_row)
             
-    def count_rows_per_feature(self, train_path, test_path):
+    def count_rows_per_feature(self, train_path, test_path=None):
         """Count number of rows with same ip address
 
         For whole train and test data set,
@@ -116,15 +134,16 @@ class Preprocess_1:
             self.ip_cnt[row['device_ip']] += 1
             self.user_cnt[user] += 1
             self.user_hour_cnt[user+'-'+row['hour']] += 1
+            
+        if test_path != None:
+            # count rows for test data
+            for i, row in enumerate(csv_reader(test_path), start=1):
+                user = self._def_user(row)
 
-        # count rows for test data
-        for i, row in enumerate(csv_reader(test_path), start=1):
-            user = self._def_user(row)
-
-            self.id_cnt[row['device_id']] += 1
-            self.ip_cnt[row['device_ip']] += 1
-            self.user_cnt[user] += 1
-            self.user_hour_cnt[user+'-'+row['hour']] += 1
+                self.id_cnt[row['device_id']] += 1
+                self.ip_cnt[row['device_ip']] += 1
+                self.user_cnt[user] += 1
+                self.user_hour_cnt[user+'-'+row['hour']] += 1
 
     def _def_user(self, row):
         """Reference from 3 idiots's solution
@@ -280,3 +299,21 @@ class Preprocess_2:
                 feats.append(hashstr('user_click_histroy-'+row['user_count']+'-'+row['user_click_histroy']))
 
                 f.write('{0} {1} {2}\n'.format(row['id'], row['click'], ' '.join(feats)))
+                
+                
+def add_dummy_label(src_path, dst_path):
+    """Add dummy label for test data
+    
+    Args:
+        src_path: raw path for test data
+        dst_path: output path with dummy label
+    Returns:
+        None
+    """
+    writer = csv_writer(dst_path, as_dict=False)
+    for i, row in enumerate(csv_reader(src_path, as_dict=False)):
+        if i == 0:
+            row.insert(1, 'click')
+        else:
+            row.insert(1, '0')
+        writer.writerow(row)
