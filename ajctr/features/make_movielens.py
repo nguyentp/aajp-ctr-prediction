@@ -81,21 +81,12 @@ def preprocess_features(movielens):
     return movielens
 
 
-
 def make():
     movielens = pd.read_csv(pathify('data', 'interim', 'movielens.csv'))
     movielens = extract_features(movielens)
     movielens = make_binary_label(movielens)
     movielens = preprocess_features(movielens)
-
-    features = [
-        'MovieID',
-        'UserID',
-        'Gender',
-        'Age',
-        'Occupation',
-        'debut_year'
-    ] + _GENRES
-    y = movielens['Click'].values.reshape(-1, 1)
-    x = movielens[features]
-    return x, y
+    movielens.to_csv(
+        pathify('data', 'interim', 'movielens-train-test.csv'),
+        index=False
+    )
