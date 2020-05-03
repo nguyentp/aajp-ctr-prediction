@@ -47,8 +47,10 @@ def make():
     users = load_users()
     log.info('users shape: {}'.format(users.shape))
 
-    return (
+    movielens = (
         ratings
         .merge(movies, on=['MovieID'])
         .merge(users, on=['UserID'])
     )
+    movielens.to_csv(pathify('data', 'interim', 'movielens.csv'), index=False)
+    log.info('Movielens after merge: {}'.format(movielens.shape))

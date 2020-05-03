@@ -1,47 +1,106 @@
-import collections
+from collections import defaultdict
 import hashlib
 import math
 import os 
 import subprocess
 from multiprocessing import Pool
 import pandas as pd
-from ajctr.helpers import log, csv_writer, csv_reader, pathify
+import csv
+from ajctr.helpers import log, csv_writer, csv_reader, pathify, timing
 
-def make(is_debug=True):
-    """Full function to extract features from avazu's raw data    
-    """
+
+def make_output_headers():
+    headers = 'id,click,hour,C1,banner_pos,site_id,site_domain,site_category,app_id,app_domain,app_category,device_id,device_ip,device_model,device_type,device_conn_type,C14,C15,C16,C17,C18,C19,C20,C21'.split(',')
+    headers.remove('click')
+    return ['click'] + headers
+
+
+def make_userid_from_row(row):
+    return '{}|{}'.format(row['device_ip'], row['device_model'])
+
+
+def make_hour_from_row(row):
+    # hour: format is YYMMDDHH, so 14091123 means 23:00 on Sept. 11, 2014 UTC.
+    return row['hour'][-2:]
+
+
+def is_million(x):
+    return (x + 1) % 10**6 == 0
+
+
+def iter_as_dict(path_to_file):
+    with open(path_to_file) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for i, row in enumerate(reader):
+            yield i, row
+
+
+def prepare_count_features(path_to_file):
+    count_features = {}
+    count_features['device_id_count'] = defaultdict(int)
+    count_features['device_ip_count'] = defaultdict(int)
+    count_features['user_id_count'] = defaultdict(int)
+    count_features['hour_count'] = defaultdict(int)
+
+    for i, row in iter_as_dict(path_to_file):
+        count_features['device_id_count'][row['device_id']] += 1
+        count_features['device_ip_count'][row['device_ip']] += 1
+        count_features['user_id_count'][make_userid_from_row(row)] += 1
+        count_features['hour_count'][make_hour_from_row(row)] += 1
+        if is_million(i):
+            log.info('Count {} mil.rows in {}'.format(i + 1, path_to_file))
+    return count_features
+
+
+def add_count_features_to_row(row, count_features):
+    after_add = row.copy()
+    after_add['device_id_count'] = (
+        count_features['device_id_count'].get(row['device_id'], 0)
+    )
+    after_add['device_ip_count'] = (
+        count_features['device_ip_count'].get(row['device_ip'], 0)
+    )
+    after_add['user_id_count'] = (
+        count_features['user_id_count'].get(make_userid_from_row(row), 0)
+    )
+    after_add['hour_count'] = (
+        count_features['hour_count'].get(make_hour_from_row(row), 0)
+    )
+    return after_add
+
+
+def make_features(input_file, output_file, is_test=False):
+    count_features = prepare_count_features(input_file)
+    fields = make_output_headers() + list(count_features.keys())
+    with open(output_file, 'w') as csv_file:
+        writer = csv.DictWriter(csv_file, fields)
+        writer.writeheader()
+        for i, row in (iter_as_dict(input_file)):
+            if is_million(i):
+                log.info('Write {} mil.rows to {}'.format(i + 1, output_file))
+            row_to_write = add_count_features_to_row(row, count_features)
+            if is_test:
+                row_to_write['click'] = -1
+            writer.writerow(row_to_write)
+
+
+def make(is_debug=False):
+    csv_folder = pathify('data', 'raw', 'avazu')
     if is_debug:
-        raw_train = pathify('data', 'raw', 'avazu', 'sample', 'train')
-    else:
-        raw_train = pathify('data', 'raw', 'avazu', 'train')
+        csv_folder = pathify(csv_folder, 'sample')
+
+    make_features(
+        input_file=pathify(csv_folder, 'train'),
+        output_file='data/interim/avazu-train.csv'
+    )
+
+    make_features(
+        input_file=pathify(csv_folder, 'test'),
+        output_file='data/interim/avazu-test.csv',
+        is_test=True
+    )
     
-    # add new features
-    interim_train_1 = pathify('data', 'interim', 'avazu_1.csv')
-    
-    feature_gen = Preprocess_1()
-    feature_gen.count_rows_per_feature(raw_train)
-    feature_gen.run(raw_train, interim_train_1, is_train=True)
-    
-    # hashing features
-    interim_train_2 = pathify('data', 'interim', 'avazu_2.csv')
-    
-    hashing = Preprocess_2(nr_thread=12, nr_bins=1000000)
-    hashing.run(interim_train_1, interim_train_2)
-    
-    # load as pandas's dataframe and return x, y
-    fields = [
-        'id',
-        'Click',
-        'feature_0','feature_1','feature_2','feature_3','feature_4','feature_5','feature_6','feature_7', 'feature_8',
-        'feature_9','feature_10','feature_11','feature_12','feature_13','feature_14','feature_15', 'feature_16'
-    ]
-    
-    avazu = pd.read_csv(pathify('data', 'interim', 'avazu_2.csv'), header=None, names=fields, sep=' ')
-    y = avazu['Click'].values.reshape(-1, 1)
-    x = avazu.drop(['id', 'Click'], axis=1)
-    return x, y
-    
-        
+
 class Preprocess_1:
     """Module for adding new features to raw data
     
