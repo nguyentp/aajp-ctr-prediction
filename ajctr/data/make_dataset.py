@@ -11,6 +11,13 @@ def make_and_save_movielens():
         index=False
     )
 
+    
+def make_and_save_avazu():
+    """Avazu data does not need this step
+    """
+    pass
 
 def make():
+    log.info('For movielens')
     make_and_save_movielens()
+    make_and_save_avazu()

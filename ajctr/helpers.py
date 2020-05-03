@@ -8,6 +8,7 @@ import shutil
 import logging
 import pickle
 import functools
+import csv
 import json
 import numpy as np
 import pandas as pd
@@ -20,7 +21,7 @@ __all__ = [
     'pathify', 'listify', 
     'save_json', 'load_json', 
     '_pickle', 'load_pickle',
-    'log'
+    'log', 'csv_reader', 'csv_writer'
 ]
 
 
@@ -104,6 +105,19 @@ def timing(fn):
         log.info(f'End {fn.__module__} {fn.__name__} in {end - start:.2f}s')
         return value
     return wrapper
+
+
+def csv_reader(path, as_dict=True):
+    if as_dict:
+        return csv.DictReader(open(path))
+    else:
+        return csv.reader(open(path))
+
+def csv_writer(path, headers=None, as_dict=True):
+    if as_dict:
+        return csv.DictWriter(open(path, 'w'), headers)
+    else:
+        return csv.writer(open(path, 'w'))
 
 
 pd.options.display.max_columns = 999
