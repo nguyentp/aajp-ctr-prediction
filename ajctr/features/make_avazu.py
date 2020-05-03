@@ -84,6 +84,7 @@ def make_features(input_file, output_file, is_test=False):
             writer.writerow(row_to_write)
 
 
+@timing
 def make(is_debug=False):
     csv_folder = pathify('data', 'raw', 'avazu')
     if is_debug:
