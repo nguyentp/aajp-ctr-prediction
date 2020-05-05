@@ -4,6 +4,6 @@ from ajctr.features import make_movielens, make_avazu
 
 
 @timing
-def make():
-    make_movielens.make()
-    make_avazu.make()
+def make(is_debug=False):
+    make_movielens.make(is_debug)
+    make_avazu.make(is_debug)

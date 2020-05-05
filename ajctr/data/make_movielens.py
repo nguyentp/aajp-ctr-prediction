@@ -37,7 +37,7 @@ def load_users():
     return load_dat_file(path, headers)
 
 
-def make():
+def make(is_debug=False):
     ratings = load_ratings()
     log.info('ratings shape: {}'.format(ratings.shape))
 

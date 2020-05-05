@@ -4,5 +4,5 @@ from ajctr.data import make_movielens
 
 
 @timing
-def make():
-    make_movielens.make()
+def make(is_debug=False):
+    make_movielens.make(is_debug)

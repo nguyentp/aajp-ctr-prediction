@@ -81,7 +81,7 @@ def preprocess_features(movielens):
     return movielens
 
 
-def make():
+def make(is_debug=False):
     movielens = pd.read_csv(pathify('data', 'interim', 'movielens.csv'))
     movielens = extract_features(movielens)
     movielens = make_binary_label(movielens)
