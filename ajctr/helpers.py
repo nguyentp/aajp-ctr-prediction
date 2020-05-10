@@ -10,6 +10,7 @@ import pickle
 import functools
 import csv
 import json
+import hashlib
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -119,6 +120,15 @@ def csv_writer(path, headers=None, as_dict=True):
     else:
         return csv.writer(open(path, 'w'))
 
+
+def categorize_by_hash(x, num_categories):
+    """Using hashtrick to categorize input to fixed-size dimension.
+
+    Returns:
+    --------
+        Return index from 0 to (num_categories - 1)
+    """
+    return int(hashlib.md5(str(x).encode('utf8')).hexdigest(), 16) % num_categories 
 
 pd.options.display.max_columns = 999
 style.use('fivethirtyeight')
