@@ -130,5 +130,13 @@ def categorize_by_hash(x, num_categories):
     """
     return int(hashlib.md5(str(x).encode('utf8')).hexdigest(), 16) % num_categories 
 
+
+def iter_as_dict(path_to_file):
+    with open(path_to_file) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for i, row in enumerate(reader):
+            yield i, row
+
+
 pd.options.display.max_columns = 999
 style.use('fivethirtyeight')
