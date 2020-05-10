@@ -85,6 +85,37 @@ def make_features(input_file, output_file, is_test=False):
 
 
 @timing
+def split_for_validation(is_debug):
+    # Use date 30 in train data as validation data
+    date_val = '141030'
+    fields = 'click,id,hour,C1,banner_pos,site_id,site_domain,site_category,app_id,app_domain,app_category,device_id,device_ip,device_model,device_type,device_conn_type,C14,C15,C16,C17,C18,C19,C20,C21,device_id_count,device_ip_count,user_id_count,hour_count\n'
+    cv_train_path = 'data/interim/avazu-cv-train.csv'
+    cv_val_path = 'data/interim/avazu-cv-val.csv'
+
+    with open(cv_train_path, 'w') as train_file:
+        train_file.write(fields)
+    with open(cv_val_path, 'w') as val_file:
+        val_file.write(fields)
+        
+    with open('data/interim/avazu-train.csv') as csv_file:
+        with open(cv_train_path, 'a') as train_file:
+            with open(cv_val_path, 'a') as val_file:
+                for i, line in enumerate(csv_file):
+                    if i == 0:
+                        continue
+                    if is_debug:
+                        val_file.write(line)
+                        train_file.write(line)
+                    else:
+                        if line[:29].endswith(date_val):
+                            val_file.write(line)
+                        else:
+                            train_file.write(line)
+
+                    if is_million(i):
+                        log.info('Splited {} mil.rows'.format(i + 1))
+
+@timing
 def make(is_debug=False):
     csv_folder = pathify('data', 'raw', 'avazu')
     if is_debug:
@@ -100,6 +131,7 @@ def make(is_debug=False):
         output_file='data/interim/avazu-test.csv',
         is_test=True
     )
+    split_for_validation(is_debug)
     
 
 class Preprocess_1:

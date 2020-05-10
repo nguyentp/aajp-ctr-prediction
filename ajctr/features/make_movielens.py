@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
 import pandas as pd
-from ajctr.helpers import log, pathify, save_pickle
+from sklearn.model_selection import GroupKFold
+from ajctr.helpers import log, pathify, save_pickle, timing
 
 
 _GENRES = [
@@ -81,6 +82,26 @@ def preprocess_features(movielens):
     return movielens
 
 
+@timing
+def split_for_validation(movielens):
+    userids = movielens['UserID'].tolist()
+
+    kfold = GroupKFold(n_splits=5)
+    for i, (train_ids, val_ids) in enumerate(kfold.split(movielens, groups=userids)):
+        train = movielens.iloc[train_ids, :]
+        val = movielens.iloc[val_ids, :]
+        assert set(train['UserID']) & set(val['UserID']) == set()
+        train.to_csv(
+            pathify('data', 'interim', 'movielens-cv{}-train.csv'.format(i)),
+            index=False
+        )
+        val.to_csv(
+            pathify('data', 'interim', 'movielens-cv{}-val.csv'.format(i)),
+            index=False
+        )
+
+
+@timing
 def make(is_debug=False):
     movielens = pd.read_csv(pathify('data', 'interim', 'movielens.csv'))
     movielens = extract_features(movielens)
@@ -90,3 +111,4 @@ def make(is_debug=False):
         pathify('data', 'interim', 'movielens-train-test.csv'),
         index=False
     )
+    split_for_validation(movielens)

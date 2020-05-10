@@ -6,7 +6,7 @@ from ajctr.features import make_features
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--is-debug', default=False, type=bool)
+parser.add_argument('--is-debug', default=True, type=bool)
 args = parser.parse_args('')
 if args.is_debug:
     log.info('Run program in Debug mode')
