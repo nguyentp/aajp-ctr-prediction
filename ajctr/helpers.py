@@ -64,7 +64,7 @@ def pathify(*tokens):
     return os.path.abspath(os.path.join(*tokens))
 
 
-def save_json(path, encoding=None):
+def load_json(path, encoding=None):
     try:
         with open(path, encoding=encoding) as f:
             return json.load(f)
@@ -72,7 +72,7 @@ def save_json(path, encoding=None):
         log.info(e)
 
 
-def load_json(obj, path):
+def save_json(obj, path):
     try:
         with open(path, 'w') as f:
             json.dump(obj, f)
