@@ -49,6 +49,7 @@
     1. FastFM (https://github.com/ibayer/fastFM) 
     2. pywFM (https://github.com/jfloff/pywFM) 
     3. PyFM (https://github.com/coreylynch/pyFM) 
+    4. [LightFM ~3k Stars](https://github.com/lyst/lightfm)
 - Java 
     1. JLibFM (https://github.com/gaterslebenchen/JLibFM) 
     2. JavaFM: Java 8 Factorisation Machines Library (https://github.com/RankSys/JavaFM) 
