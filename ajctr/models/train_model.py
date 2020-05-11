@@ -1,8 +1,8 @@
 from sklearn.linear_model import LogisticRegression
 import xgboost as xgb
-from sklearn.model_selection import StratifiedKFold
+import numpy as np
 from ajctr.reports.metrics import cal_auc, cal_logloss
-from ajctr.helpers import load_pickle, pathify, log, timing
+from ajctr.helpers import load_processed_data, pathify, log, timing, save_pickle
 
 def train_logistic_model():
     params = {
@@ -10,83 +10,105 @@ def train_logistic_model():
         'C':1.0,
         'random_state':None,
         'solver':'lbfgs',
-        'max_iter':100,
+        'max_iter':300,
         'verbose':0,
     }
-    lr = LogisticRegression(**params)
 
-    train_avazu(lr)
-    train_movie_lens(lr)
+    lr = LogisticRegression(**params)
+    train_avazu(lr, model_name='lr', is_saving=True)
+
+    params = {
+        'penalty':'l2',
+        'C':1.0,
+        'random_state':None,
+        'solver':'lbfgs',
+        'max_iter':300,
+        'verbose':0,
+    }
+
+    lr = LogisticRegression(**params)
+    train_movie_lens(lr, model_name='lr', is_saving=True)
 
 
 def train_gradientboosting_model():
     params = {
-        'learning_rate':0.3,
-        'gamma':0,
-        'max_depth':6,
-        'min_child_weight':1,
+        'learning_rate':0.1,
+        'colsample_bytree':1,
+        'n_estimators':100,
+        'gamma':1,
+        'max_depth':3,
         'lambda':1,
-        'alpha':0,
+        'subsample':0.8,
         'verbosity':0,
     }
 
     gb = xgb.XGBClassifier(**params)
-    train_avazu(gb)
-    train_movie_lens(gb)
+    train_avazu(gb, model_name='gb', is_saving=True)
+
+    params = {
+        'learning_rate':0.1,
+        'colsample_bytree':1,
+        'n_estimators':100,
+        'gamma':1,
+        'max_depth':3,
+        'lambda':1,
+        'subsample':0.8,
+        'verbosity':0,
+    }
+
+    gb = xgb.XGBClassifier(**params)
+    train_movie_lens(gb, model_name='gb', is_saving=True)
     
 
 @timing
-def train_avazu(model):
-    X_train, X_val, y_train, y_val = train_val_split_avazu()
+def train_avazu(model, model_name, is_saving=True):
+    X_train, y_train = load_processed_data(pathify('data', 'processed', 'avazu-cv-train.csv'), label_col='click')
+    X_val, y_val = load_processed_data(pathify('data', 'processed', 'avazu-cv-val.csv'), label_col='click')
 
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_val)
 
     auc_score = cal_auc(y_val, y_pred)
-    log.info("auc_score: {}".format(auc_score))
+    log.info("auc_score: {:.4f}".format(auc_score))
 
     log_loss = cal_logloss(y_val, y_pred)
-    log.info("log_loss: {}".format(log_loss))
+    log.info("log_loss: {:.4f}".format(log_loss))
 
+    if is_saving:
+            save_pickle(model, pathify('models', 'avazu-{}.pickle'.format(model_name)))
     return model
 
 @timing
-def train_movie_lens(model):
-    # dummy data
-    import numpy as np
-    X = np.array([[1, 0, 1], [1, 1, 0], [0, 0, 0], [0, 1, 0], [1, 1, 1], [1, 0, 1], [1, 1, 0], [0, 0, 0], [0, 1, 0], [1, 1, 1], [1, 0, 1], [1, 1, 0], [0, 0, 0], [0, 1, 0], [1, 1, 1], [1, 0, 1], [1, 1, 0], [0, 0, 0], [0, 1, 0], [1, 1, 1]])
-    y = np.array([1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0])
+def train_movie_lens(model, model_name, is_saving=True):
 
-    skf = StratifiedKFold(n_splits=5, random_state=None, shuffle=True)
-    fold = 1
-    for train_index, val_index in skf.split(X, y):
+    auc_scores = []
+    log_losses = []
+    for fold in range(5):
         log.info("Fold: {}".format(fold))
-        X_train, y_train = X[train_index], y[train_index]
-        X_val, y_val = X[val_index], y[val_index]
+        X_train, y_train = load_processed_data(
+            pathify('data', 'processed', 'movielens-cv{}-train.csv'.format(fold)), 
+            label_col='Click'
+        )
+        X_val, y_val = load_processed_data(
+            pathify('data', 'processed', 'movielens-cv{}-train.csv'.format(fold)), 
+            label_col='Click'
+        )
+
 
         model.fit(X_train, y_train)
 
         y_pred = model.predict(X_val)
+        auc_scores.append(cal_auc(y_val, y_pred))
+        log_losses.append(cal_logloss(y_val, y_pred))
 
-        auc_score = cal_auc(y_val, y_pred)
-        log.info("auc_score: {}".format(auc_score))
+        if is_saving:
+            save_pickle(model, pathify('models', 'movielens-{}-cv{}.pickle'.format(model_name, fold)))
 
-        log_loss = cal_logloss(y_val, y_pred)
-        log.info("log_loss: {}".format(log_loss))
+    log.info("auc score: {:.4f}+-{:.4f}".format(np.mean(auc_scores), np.std(auc_scores)))
 
-        fold += 1
-
-#TODO: split the last day data as val set, remainings as train set
-def train_val_split_avazu():
-    # return dummy value for testing
-    import numpy as np
-    X_train = np.array([[1, 0, 1], [1, 1, 0]])
-    X_val = np.array([[1, 1, 1], [0, 0, 0]])
-    y_train = np.array([1, 0])
-    y_val = np.array([1, 0])
-    return X_train, X_val, y_train, y_val 
+    log.info("log_loss: {:.4f}+-{:.4f}".format(np.mean(log_losses), np.std(log_losses)))
 
 def train():
-    train_logistic_model()
+    # train_logistic_model()
     train_gradientboosting_model()

@@ -96,6 +96,13 @@ def load_pickle(path):
         log.info(e)
 
 
+def load_processed_data(path, label_col):
+    df = pd.read_csv(path)
+    X = df.drop(columns=[label_col])
+    y = df[label_col]
+    return X, y
+
+
 def timing(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
