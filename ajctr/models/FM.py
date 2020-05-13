@@ -3,9 +3,6 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from sklearn.model_selection import train_test_split
-from ajctr.reports.metrics import cal_auc, cal_logloss
-from ajctr.helpers import load_processed_data, pathify, log, timing, save_pickle
 
 
 KerasFeat = namedtuple('Feat', ['name', 'nunique', 'Input'])

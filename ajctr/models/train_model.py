@@ -5,7 +5,8 @@ from scipy.sparse import csr_matrix
 import numpy as np
 from ajctr.reports.metrics import cal_auc, cal_logloss
 from ajctr.helpers import load_processed_data, pathify, log, timing, save_pickle
-from FM import make_fm_model
+from ajctr.models.FM import make_fm_model
+
 
 def train_logistic_model():
     params = {
@@ -142,8 +143,8 @@ def train_fastFM_movielens(model_name, is_saving= True):
         auc_scores.append(cal_auc(y_val, y_pred))
         log_losses.append(cal_logloss(y_val, y_pred)) 
     
-    if is_saving:
-        save_pickle(model, pathify('models', 'movielens-{}-cv{}.pickle'.format(model_name, fold)))
+        if is_saving:
+            save_pickle(model, pathify('models', 'movielens-{}-cv{}.pickle'.format(model_name, fold)))
 
     log.info("auc score: {:.4f}+-{:.4f}".format(np.mean(auc_scores), np.std(auc_scores)))
 
@@ -169,7 +170,7 @@ def train_fastFM_avazu(model_name, is_saving= True):
     log.info("log_loss: {:.4f}".format(log_loss))
 
     if is_saving:
-            save_pickle(model, pathify('models', 'avazu-{}.pickle'.format(model_name)))
+        save_pickle(model, pathify('models', 'avazu-{}.pickle'.format(model_name)))
     return model
 
 @timing
@@ -187,14 +188,17 @@ def train_fm_movielens(model_name, is_saving= True):
             pathify('data', 'processed', 'movielens-cv{}-train.csv'.format(fold)), 
             label_col='Click'
         )
-        print(X_train.shape, X_val.shape, y_train.shape, y_val.shape)
-    
+        
+
+        X_train.rename(columns={"Children's": 'Childrens'}, inplace = True)
+        X_val.rename(columns={"Children's": 'Childrens'}, inplace = True)
+
         # treat all columns as categorical, temporary skip Children's
         num_names = []
-        cat_names = list(X_train.drop(["Children's"], axis = 1).columns)
-        cat_nuniques = [train[f].max() for f in cat_names]
+        cat_names = list(X_train.columns)
+        cat_nuniques = [X_train[f].max() for f in cat_names]
         fm = make_fm_model(num_names, cat_names, cat_nuniques, 3)
-        print(fm.summary())
+        # print(fm.summary())
         # plot_keras_model(fm, 'fm.png')
         fm.compile(loss = 'MSE', optimizer='adam')
 
@@ -202,16 +206,16 @@ def train_fm_movielens(model_name, is_saving= True):
         xval = [X_val[f].values.reshape(-1, 1) for f in num_names + cat_names]
         ytrain = y_train.values.reshape(-1, 1)
         yval = y_val.values.reshape(-1, 1)
-        print(len(xtrain), len(xval), len(ytrain), len(yval))
+    
 
-        fm.fit(xtrain, ytrain, batch_size=64, epochs=3, validation_data=(xval, yval))
+        fm.fit(xtrain, ytrain, batch_size=64, epochs=1, validation_data=(xval, yval))
         y_pred = fm.predict(xval, batch_size=64)
         
         auc_scores.append(cal_auc(y_val, y_pred))
         log_losses.append(cal_logloss(y_val, y_pred)) 
-    
-    if is_saving:
-        save_pickle(model, pathify('models', 'movielens-{}-cv{}.pickle'.format(model_name, fold)))
+   
+        if is_saving:
+            save_pickle(fm, pathify('models', 'movielens-{}-cv{}.pickle'.format(model_name, fold)))
 
     log.info("auc score: {:.4f}+-{:.4f}".format(np.mean(auc_scores), np.std(auc_scores)))
 
@@ -221,14 +225,13 @@ def train_fm_movielens(model_name, is_saving= True):
 def train_fm_avazu(model_name, is_saving= True):
     X_train, y_train = load_processed_data(pathify('data', 'processed', 'avazu-cv-train.csv'), label_col='click')
     X_val, y_val = load_processed_data(pathify('data', 'processed', 'avazu-cv-val.csv'), label_col='click')
-    print(X_train.shape, X_val.shape, y_train.shape, y_val.shape)
     
     # treat all columns as categorical  
     num_names = []
     cat_names = list(X_train.columns)
     cat_nuniques = [X_train[f].max() for f in cat_names]
     fm = make_fm_model(num_names, cat_names, cat_nuniques, 3)
-    print(fm.summary())
+    # print(fm.summary())
     # plot_keras_model(fm, 'fm.png')
     fm.compile(loss = 'MSE', optimizer='adam')
 
@@ -236,7 +239,7 @@ def train_fm_avazu(model_name, is_saving= True):
     xval = [X_val[f].values.reshape(-1, 1) for f in num_names + cat_names]
     ytrain = y_train.values.reshape(-1, 1)
     yval = y_val.values.reshape(-1, 1)
-    print(len(xtrain), len(xval), len(ytrain), len(yval))
+  
 
     fm.fit(xtrain, ytrain, batch_size=64, epochs=3, validation_data=(xval, yval))
     y_pred = fm.predict(xval, batch_size=64)
@@ -246,7 +249,7 @@ def train_fm_avazu(model_name, is_saving= True):
 
     log_loss = cal_logloss(y_val, y_pred)
     log.info("log_loss: {:.4f}".format(log_loss))
-
+   
     if is_saving:
         save_pickle(fm, pathify('models', 'avazu-{}.pickle'.format(model_name)))
 
