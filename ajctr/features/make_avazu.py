@@ -8,7 +8,8 @@ from multiprocessing import Pool
 import pandas as pd
 from ajctr.helpers import (
     log, csv_writer, csv_reader, pathify,
-    timing, categorize_by_hash, iter_as_dict
+    timing, categorize_by_hash, iter_as_dict,
+    load_pickle, save_pickle
 )
 
 
@@ -68,8 +69,14 @@ def add_count_features_to_row(row, count_features):
     return after_add
 
 
-def make_features(input_file, output_file, is_test=False):
-    count_features = prepare_count_features(input_file)
+def make_features(input_file, output_file, mode):
+    count_filename = pathify('data', 'interim', 'avazu-cv-train-count-features.pickle')
+    if mode in ['test', 'val']:
+        count_features = load_pickle(count_filename)
+    else:
+        count_features = prepare_count_features(input_file)
+        save_pickle(count_features, count_filename)
+
     fields = make_output_headers() + list(count_features.keys())
     with open(output_file, 'w') as csv_file:
         writer = csv.DictWriter(csv_file, fields)
@@ -78,25 +85,26 @@ def make_features(input_file, output_file, is_test=False):
             if is_million(i):
                 log.info('Write {} mil.rows to {}'.format(i + 1, output_file))
             row_to_write = add_count_features_to_row(row, count_features)
-            if is_test:
+            row_to_write['hour'] = make_hour_from_row(row)
+            if mode == 'test':
                 row_to_write['click'] = -1
             writer.writerow(row_to_write)
 
 
 @timing
-def split_for_validation(is_debug):
+def split_for_validation(train_filename, is_debug):
     # Use date 30 in train data as validation data
     date_val = '141030'
-    fields = 'click,id,hour,C1,banner_pos,site_id,site_domain,site_category,app_id,app_domain,app_category,device_id,device_ip,device_model,device_type,device_conn_type,C14,C15,C16,C17,C18,C19,C20,C21,device_id_count,device_ip_count,user_id_count,hour_count\n'
-    cv_train_path = 'data/interim/avazu-cv-train.csv'
-    cv_val_path = 'data/interim/avazu-cv-val.csv'
+    fields = 'id,click,hour,C1,banner_pos,site_id,site_domain,site_category,app_id,app_domain,app_category,device_id,device_ip,device_model,device_type,device_conn_type,C14,C15,C16,C17,C18,C19,C20,C21,device_id_count,device_ip_count,user_id_count,hour_count\n'
+    cv_train_path = 'data/interim/avazu-train.csv'
+    cv_val_path = 'data/interim/avazu-val.csv'
 
     with open(cv_train_path, 'w') as train_file:
         train_file.write(fields)
     with open(cv_val_path, 'w') as val_file:
         val_file.write(fields)
-        
-    with open('data/interim/avazu-train.csv') as csv_file:
+
+    with open(train_filename) as csv_file:
         with open(cv_train_path, 'a') as train_file:
             with open(cv_val_path, 'a') as val_file:
                 for i, line in enumerate(csv_file):
@@ -106,7 +114,7 @@ def split_for_validation(is_debug):
                         val_file.write(line)
                         train_file.write(line)
                     else:
-                        if line[:29].endswith(date_val):
+                        if line.split(',')[2][:-2] == date_val:
                             val_file.write(line)
                         else:
                             train_file.write(line)
@@ -139,31 +147,33 @@ def make(is_debug=False):
     if is_debug:
         csv_folder = pathify(csv_folder, 'sample')
 
+    split_for_validation(pathify(csv_folder, 'train'), is_debug)
+
     make_features(
-        input_file=pathify(csv_folder, 'train'),
-        output_file='data/interim/avazu-train.csv'
+        input_file=pathify('data', 'interim', 'avazu-train.csv'),
+        output_file=pathify('data', 'interim', 'avazu-train-feature.csv'),
+        mode='train'
     )
 
     make_features(
-        input_file=pathify(csv_folder, 'test'),
-        output_file='data/interim/avazu-test.csv',
-        is_test=True
+        input_file=pathify('data', 'interim', 'avazu-val.csv'),
+        output_file=pathify('data', 'interim', 'avazu-val-feature.csv'),
+        mode='val'
     )
-    split_for_validation(is_debug)
 
     feature_names = 'C1,banner_pos,site_id,site_domain,site_category,app_id,app_domain,app_category,device_id,device_ip,device_model,device_type,device_conn_type,C14,C15,C16,C17,C18,C19,C20,C21,device_id_count,device_ip_count,user_id_count,hour_count'.split(',')
     label_name = 'click'
     preprocess(
-        input_path=pathify('data', 'interim', 'avazu-cv-train.csv'),
+        input_path=pathify('data', 'interim', 'avazu-train-feature.csv'),
         output_path=pathify('data', 'processed', 'avazu-cv-train.csv'),
         feature_names=feature_names,
         label_name=label_name,
-        num_categories=2**5
+        num_categories=2**16
     )
     preprocess(
-        input_path=pathify('data', 'interim', 'avazu-cv-val.csv'),
+        input_path=pathify('data', 'interim', 'avazu-val-feature.csv'),
         output_path=pathify('data', 'processed', 'avazu-cv-val.csv'),
         feature_names=feature_names,
         label_name=label_name,
-        num_categories=2**5
+        num_categories=2**16
     )
