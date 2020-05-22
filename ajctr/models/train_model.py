@@ -5,7 +5,7 @@ from scipy.sparse import csr_matrix
 import numpy as np
 from ajctr.reports.metrics import cal_auc, cal_logloss
 from ajctr.helpers import load_processed_data, pathify, log, timing, save_pickle
-from ajctr.models.FM import make_fm_model
+from ajctr.models.fm import make_fm_model
 
 
 def train_logistic_model():
