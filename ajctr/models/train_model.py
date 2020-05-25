@@ -11,57 +11,57 @@ from ajctr.models.fm import make_fm_model
 def train_logistic_model():
     params = {
         'penalty':'l2',
-        'C':1.0,
-        'random_state':None,
-        'solver':'lbfgs',
-        'max_iter':300,
-        'verbose':0,
+        'C':100.0,
+        'class_weight':'balanced',
+        'solver':'saga',
+        'max_iter':500,
+        'verbose':1,
+        'n_jobs':-1
     }
 
     lr = LogisticRegression(**params)
     train_avazu(lr, model_name='lr', is_saving=True)
 
-    params = {
-        'penalty':'l2',
-        'C':1.0,
-        'random_state':None,
-        'solver':'lbfgs',
-        'max_iter':300,
-        'verbose':0,
-    }
+    # params = {
+    #     'penalty':'l2',
+    #     'C':1.0,
+    #     'random_state':None,
+    #     'solver':'lbfgs',
+    #     'max_iter':300,
+    #     'verbose':0,
+    # }
 
-    lr = LogisticRegression(**params)
-    train_movie_lens(lr, model_name='lr', is_saving=True)
+    # lr = LogisticRegression(**params)
+    # train_movie_lens(lr, model_name='lr', is_saving=True)
 
 
 def train_gradientboosting_model():
     params = {
         'learning_rate':0.1,
-        'colsample_bytree':1,
+        'colsample_bytree':0.8,
         'n_estimators':100,
         'gamma':1,
-        'max_depth':3,
+        'max_depth':6,
         'lambda':1,
-        'subsample':0.8,
-        'verbosity':0,
+        'min_child_weight':5
     }
 
     gb = xgb.XGBClassifier(**params)
     train_avazu(gb, model_name='gb', is_saving=True)
 
-    params = {
-        'learning_rate':0.1,
-        'colsample_bytree':1,
-        'n_estimators':100,
-        'gamma':1,
-        'max_depth':3,
-        'lambda':1,
-        'subsample':0.8,
-        'verbosity':0,
-    }
+    # params = {
+    #     'learning_rate':0.1,
+    #     'colsample_bytree':1,
+    #     'n_estimators':100,
+    #     'gamma':1,
+    #     'max_depth':3,
+    #     'lambda':1,
+    #     'subsample':0.8,
+    #     'verbosity':0,
+    # }
 
-    gb = xgb.XGBClassifier(**params)
-    train_movie_lens(gb, model_name='gb', is_saving=True)
+    # gb = xgb.XGBClassifier(**params)
+    # train_movie_lens(gb, model_name='gb', is_saving=True)
     
 def train_fm_model():
     train_fastFM_avazu('fastFM', is_saving= True)
@@ -73,12 +73,14 @@ def train_fm_model():
 def train_avazu(model, model_name, is_saving=True):
     X_train, y_train = load_processed_data(pathify('data', 'processed', 'avazu-cv-train.csv'), label_col='click')
     X_val, y_val = load_processed_data(pathify('data', 'processed', 'avazu-cv-val.csv'), label_col='click')
+    if model_name == 'gb':
+        model.fit(X_train, y_train, eval_metric='auc', verbose=True, eval_set=[(X_val, y_val)])
+    elif model_name == 'lr':
+        model.fit(X_train, y_train)
 
-    model.fit(X_train, y_train)
-
-    y_pred = model.predict(X_val)
-
-    auc_score = cal_auc(y_val, y_pred)
+    y_pred = model.predict_proba(X_val)
+    
+    auc_score = cal_auc(y_val, y_pred[:, 1])
     log.info("auc_score: {:.4f}".format(auc_score))
 
     log_loss = cal_logloss(y_val, y_pred)
