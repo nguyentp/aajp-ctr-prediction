@@ -97,7 +97,7 @@ def load_pickle(path):
 
 
 def load_processed_data(path, label_col):
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, dtype=np.int16)
     X = df.drop(columns=[label_col])
     y = df[label_col]
     return X, y
