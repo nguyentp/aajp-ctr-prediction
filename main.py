@@ -7,8 +7,8 @@ from ajctr.models import train_model
 
 @timing
 def main():
-    #make_dataset.make(is_debug=False)
-    #make_features.make(is_debug=False)
+    make_dataset.make(is_debug=False)
+    make_features.make(is_debug=False)
     train_model.train()
 
 
