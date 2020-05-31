@@ -174,27 +174,6 @@ def train_fastFM_movielens(model_name, is_saving=True):
 def train_fastFM_avazu(model_name, is_saving=True):
     X_train, y_train = load_processed_data(pathify('data', 'processed', 'avazu-cv-train.csv'), label_col='click')
     X_val, y_val = load_processed_data(pathify('data', 'processed', 'avazu-cv-val.csv'), label_col='click')
-
-
-    # nrows = 100000
-    # label_col = 'click'
-    # df = pd.read_csv(pathify('data', 'processed', 'avazu-cv-train.csv'), nrows=nrows, dtype=np.int16)
-    # X_train = df.drop(columns=[label_col])
-    # y_train = df[label_col]
-    
-    
-    # df = pd.read_csv(pathify('data', 'processed', 'avazu-cv-train.csv'), dtype=np.int16)
-    # X_val = df.drop(columns=[label_col])
-    # y_val = df[label_col]
-    
-
-    # X_train = X_train[:5000000]
-    # y_train = y_train[:5000000]
-    # print(X_train.shape, y_train.shape, X_val.shape, y_val.shape)
-
-    # X_train = X_train % 1000
-    # print(X_train.describe())
-
     
     encoder = OneHotEncoder(handle_unknown='ignore').fit(X_train)
     X_train = encoder.transform(X_train)
@@ -208,13 +187,11 @@ def train_fastFM_avazu(model_name, is_saving=True):
     y_train = np.array(y_train)
     y_val   = np.array(y_val)
 
-    start = time.time()
     model = mcmc.FMClassification(n_iter=50, init_stdev=0.1, random_state= 123, rank=2)
     y_pred = model.fit_predict_proba(X_train, y_train, X_val)
     auc_score_val = cal_auc(y_val, y_pred)
     log.info("auc_score_val: {:.4f}".format(auc_score_val))
     log.info("log_loss_val: {:.4f}".format(cal_logloss(y_val, y_pred)))
-    print("time: {} min".format((time.time()-start)/60))
     if is_saving:
         save_pickle(model, pathify('models', 'avazu-{}.pickle'.format(model_name)))
 
