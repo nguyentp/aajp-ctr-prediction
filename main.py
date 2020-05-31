@@ -4,12 +4,13 @@ from ajctr.data import make_dataset
 from ajctr.features import make_features
 from ajctr.models import train_model
 
+
 @timing
 def main():
     make_dataset.make(is_debug=False)
     make_features.make(is_debug=False)
-
     train_model.train()
+
 
 if __name__ == '__main__':
     main()

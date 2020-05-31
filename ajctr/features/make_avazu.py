@@ -91,7 +91,6 @@ def make_features(input_file, output_file, mode):
             writer.writerow(row_to_write)
 
 
-@timing
 def split_for_validation(train_filename, is_debug):
     # Use date 30 in train data as validation data
     date_val = '141030'
@@ -123,7 +122,6 @@ def split_for_validation(train_filename, is_debug):
                         log.info('Splited {} mil.rows'.format(i + 1))
 
 
-@timing
 def preprocess(input_path, output_path, feature_names, label_name, num_categories):
     fields = [label_name] + feature_names
     with open(output_path, 'w') as csv_file:
