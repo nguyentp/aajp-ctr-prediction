@@ -22,7 +22,7 @@ def train_gradientboosting_model():
     gb.fit(x_train, y_train, eval_metric='auc', verbose=True, eval_set=[(x_val, y_val)])
     y_pred = gb.predict_proba(x_val)[:, 1]
     
-    auc_score = cal_auc(y_val, y_pred[:, 1])
+    auc_score = cal_auc(y_val, y_pred)
     log.info("auc_score: {:.4f}".format(auc_score))
 
     log_loss = cal_logloss(y_val, y_pred)
