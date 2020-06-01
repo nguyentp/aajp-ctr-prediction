@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OneHotEncoder, Normalizer
 from sklearn.pipeline import Pipeline
 from scipy.sparse import csr_matrix
 from ajctr.reports.metrics import cal_auc, cal_logloss
@@ -26,7 +26,7 @@ def train_logistic_model():
         'n_jobs':-1
     }
     lr = Pipeline([
-        ('scaler', StandardScaler()),
+        ('scaler', Normalizer()),
         ('lr', LogisticRegression(**params))
     ])
     lr.fit(X_train, y_train)
