@@ -18,8 +18,8 @@ def train_gradientboosting_model():
         'min_child_weight':5
     }
 
-    gb = xgb.xgbclassifier(**params)
-    gb.fit(x_train, y_train, eval_metric='auc', verbose=true, eval_set=[(x_val, y_val)])
+    gb = xgb.XGBClassifier(**params)
+    gb.fit(x_train, y_train, eval_metric='auc', verbose=True, eval_set=[(x_val, y_val)])
     y_pred = gb.predict_proba(x_val)[:, 1]
     
     auc_score = cal_auc(y_val, y_pred[:, 1])
