@@ -7,7 +7,7 @@ from ajctr.helpers import load_processed_data, pathify, log, timing, save_pickle
 
 @timing
 def train_fm_model():
-    model = als.fmregression(n_iter=100, l2_reg_w=0.1, l2_reg_v=0.1, rank=10, random_state=0)
+    model = als.FMRegression(n_iter=100, l2_reg_w=0.1, l2_reg_v=0.1, rank=10, random_state=0)
     x_train, y_train = load_processed_data(pathify('data', 'processed', 'avazu-cv-train.csv'), label_col='click')
     x_val, y_val = load_processed_data(pathify('data', 'processed', 'avazu-cv-val.csv'), label_col='click')
 
