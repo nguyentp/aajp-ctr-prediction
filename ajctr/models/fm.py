@@ -1,5 +1,5 @@
 import numpy as np
-from fastfm import als
+from fastFM import als
 from scipy.sparse import csr_matrix
 from ajctr.reports.metrics import cal_auc, cal_logloss
 from ajctr.helpers import load_processed_data, pathify, log, timing, save_pickle

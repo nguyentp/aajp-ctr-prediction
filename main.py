@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
-from ajctr.helpers import timing, log
+from ajctr.helpers import timing, log, mkdir, pathify
 from ajctr.data import make_dataset
 from ajctr.features import make_features
 from ajctr.models import train_model
 
+
+mkdir(pathify('data', 'interim'))
+mkdir(pathify('data', 'processed'))
 
 @timing
 def main():
