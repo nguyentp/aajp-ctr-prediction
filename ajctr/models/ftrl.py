@@ -2,7 +2,6 @@ from math import exp, log, sqrt
 import numpy as np
 from ajctr.reports.metrics import cal_auc, cal_logloss
 from ajctr.helpers import load_processed_data, pathify, log, timing, save_pickle
-from tqdm import tqdm
 
 @timing
 def train_ftrl_model():
@@ -15,7 +14,6 @@ def train_ftrl_model():
         'L1':1,                 # L1 regularization, larger value means more regularized
         'L2':1,                 # L2 regularization, larger value means more regularized
         'num_categories':2**16, # make sure it is the same value with make_features.py
-        'verbose':True
     }
     ftrl = ftrl_proximal(**params)
     ftrl.fit(X_train, y_train, X_val, y_val)
@@ -45,7 +43,7 @@ class ftrl_proximal(object):
         http://www.eecs.tufts.edu/~dsculley/papers/ad-click-prediction.pdf
     '''
 
-    def __init__(self, alpha, beta, L1, L2, num_categories, verbose):
+    def __init__(self, alpha, beta, L1, L2, num_categories):
         # parameters
         self.alpha = alpha
         self.beta = beta
@@ -59,8 +57,6 @@ class ftrl_proximal(object):
         self.n = [0.] * num_categories
         self.z = [0.] * num_categories
         self.w = {}
-
-        self.verbose = verbose
 
     def _indices(self, x):
         ''' A helper generator that yields the indices in x
@@ -84,16 +80,7 @@ class ftrl_proximal(object):
         y_val = y_val.values
 
         count = 1
-        for x, y in tqdm(zip(X_train, y_train)):
-            # if (count) % 10000 == 0:
-            #     y_pred = []
-            #     for x_val in list(X_val):
-            #         p = self.predict(x_val)
-            #         y_pred.append(p)
-            #     y_pred = np.array(y_pred)
-            #     log_loss = cal_logloss(y_val, y_pred)
-            #     print("{} {:.5f}".format(count, log_loss))
-
+        for x, y in zip(X_train, y_train):
             p = self.predict(x)
             self.update(x, p, y)
             count += 1

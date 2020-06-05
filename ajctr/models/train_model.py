@@ -7,7 +7,7 @@ from ajctr.models.ftrl import train_ftrl_model
 
 @timing
 def train():
-    #train_logistic_model()
-    #train_gradientboosting_model()
-    #train_fm_model()
+    train_logistic_model()
+    train_gradientboosting_model()
+    train_fm_model()
     train_ftrl_model()
