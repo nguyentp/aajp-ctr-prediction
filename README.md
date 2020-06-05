@@ -1,47 +1,145 @@
 # Introduction
 
-> Predict Click with different Machine Learning models on several Datasets.
+> Predict Click-Through-Rate with different Machine Learning models.
 
-We will submit this project to FPT SKU repository. To do that, we need below requirements:
+In this project, we will provide a benchmark of different Algorithms on Click-Through-Rate (CTR) dataset.
 
-## Quality Requirements
+This project can be useful in 2 ways:
 
-1. Source code is runable, readable and we can extend it or re-write it into other frameworks easily.
-2. Document is clear and well-organized.
-3. Python is main programming language.
+1. ***Quick*** check on common technique used in CTR prediction. If you have a dataset similar to CTR Dataset, and you want to get a baseline score, you can try to run this project on new dataset. 
+2. Used as base project and ***can be extend*** with more advanced algorithms like (Deep Learning model) and various CTR datasets. As the first version, we will use only 1 dataset and 4 basic algoithms.
 
-## Technical Requirements
+# Datasets
 
-- Model explanation at basic level.
-- Report Datasets and how did we preprocessing data.
-- Report Evaluation method and Ranking Metrics.
-- Report Training time and Inference time on batch of data.
-- Report Model size.
-- Report Pros and Cons of each model.
+Some common properties of CTR dataset are:
+
+- Number of rows is large: several millions or more.
+- Almost features are Categorical Features.
+- Categorical features are High-Cardinaliry: Number of unique values are large (normaly, thousands values).
+- Target is highly imbalance.
+
+For each dataset, we report some summary statistics to illustrate the characteristics of CTR dataset. If your dataset has similar characteristics, you can try techniques in this project as well.
+
+## [Avazu Click-Through Rate](https://www.kaggle.com/c/avazu-ctr-prediction/data)
+
+- Dataset contains Online Ads informations and its label (Click or No Click) in 10 days. Algorithms have to predict Ads Click probability. Data is ordered chronologically. Data can be downloaded from Kaggle. In this project, we will use only Train data to benchmark algorithm.
+
+  - Total rows: 40 millions (40,428,967 rows).
+  - Date ranges: 10 days, from 2014/10/21 to 2014/10/30.
+  - Average number of rows-per-day: 4 millions (4,042,896/day).
+  - Click Rate on data: 0.1698
+
+- Each rows of data has these information:
+  - `id`: Ads identifier
+  - `click`: 0/1 for non-click/click
+  - `hour`: format is YYMMDDHH, so 14091123 means 23:00 on Sept. 11, 2014 UTC.
+  - `banner_pos`
+  - `site_id`
+  - `site_domain`
+  - `site_category`
+  - `app_id`
+  - `app_domain` 
+  - `app_category` 
+  - `device_id`
+  - `device_ip`
+  - `device_model` 
+  - `device_type`
+  - `device_conn_type`
+  - `C1`: anonymized categorical variable
+  - `C14-C21`: anonymized categorical variables
+
+- Sample rows:
+
+|    |                   id |   click |     hour |   C1 |   banner_pos | site_id   | site_domain   | site_category   | app_id   | app_domain   | app_category   | device_id   | device_ip   | device_model   |   device_type |   device_conn_type |   C14 |   C15 |   C16 |   C17 |   C18 |   C19 |    C20 |   C21 |
+|---:|---------------------:|--------:|---------:|-----:|-------------:|:----------|:--------------|:----------------|:---------|:-------------|:---------------|:------------|:------------|:---------------|--------------:|-------------------:|------:|------:|------:|------:|------:|------:|-------:|------:|
+|  0 |  1000009418151094273 |       0 | 14102100 | 1005 |            0 | 1fbe01fe  | f3845767      | 28905ebd        | ecad2386 | 7801e8d9     | 07d7df22       | a99f214a    | ddd2926e    | 44956a24       |             1 |                  2 | 15706 |   320 |    50 |  1722 |     0 |    35 |     -1 |    79 |
+|  1 | 10000169349117863715 |       0 | 14102100 | 1005 |            0 | 1fbe01fe  | f3845767      | 28905ebd        | ecad2386 | 7801e8d9     | 07d7df22       | a99f214a    | 96809ac8    | 711ee120       |             1 |                  0 | 15704 |   320 |    50 |  1722 |     0 |    35 | 100084 |    79 |
+|  2 | 10000371904215119486 |       0 | 14102100 | 1005 |            0 | 1fbe01fe  | f3845767      | 28905ebd        | ecad2386 | 7801e8d9     | 07d7df22       | a99f214a    | b3cf8def    | 8a4875bd       |             1 |                  0 | 15704 |   320 |    50 |  1722 |     0 |    35 | 100084 |    79 |
+
+- Summary staticstics:
+
+|    | Column           |   #Unique |
+|---:|:-----------------|----------:|
+|  0 | C1               |         7 |
+|  1 | banner_pos       |         7 |
+|  2 | site_id          |      4737 |
+|  3 | site_domain      |      7745 |
+|  4 | site_category    |        26 |
+|  5 | app_id           |      8552 |
+|  6 | app_domain       |       559 |
+|  7 | app_category     |        36 |
+|  8 | device_id        |   2686408 |
+|  9 | device_ip        |   6729486 |
+| 10 | device_model     |      8251 |
+| 11 | device_type      |         5 |
+| 12 | device_conn_type |         4 |
+| 13 | C14              |      2626 |
+| 14 | C15              |         8 |
+| 15 | C16              |         9 |
+| 16 | C17              |       435 |
+| 17 | C18              |         4 |
+| 18 | C19              |        68 |
+| 19 | C20              |       172 |
+| 20 | C21              |        60 |
+
+
+# Cross Validation
+
+## Avazu Click-Through Rate
+
+- We use data from date `2014/10/21 - 2014/10/29` as training data. And use last date `2014/10/30` for Validation.
+- Metric used to report Validation score are: AUC and LogLoss.
+
+# Data Processing and Feature Engineering
+
+## Avazu Click-Through Rate
+
+- Feature Extraction:
+  - Extract hour in day from `hour` column. For example: `14102100 -> 00`
+  - Extract count features for each of below columns. For example: How many time we have seen `device_id == a99f214a` in data? Use only training data to estimate count features. In validation data, map count features for corresponding column.
+    - `device_id`
+    - `device_ip`
+    - `device_id + device_ip`
+    - `hour`
+  - Sample data after feature extraction:
+
+|    |   click |                   id |   hour |   C1 |   banner_pos | site_id   | site_domain   | site_category   | app_id   | app_domain   | app_category   | device_id   | device_ip   | device_model   |   device_type |   device_conn_type |   C14 |   C15 |   C16 |   C17 |   C18 |   C19 |    C20 |   C21 |   device_id_count |   device_ip_count |   user_id_count |   hour_count |
+|---:|--------:|---------------------:|-------:|-----:|-------------:|:----------|:--------------|:----------------|:---------|:-------------|:---------------|:------------|:------------|:---------------|--------------:|-------------------:|------:|------:|------:|------:|------:|------:|-------:|------:|------------------:|------------------:|----------------:|-------------:|
+|  0 |       0 |  1000009418151094273 |      0 | 1005 |            0 | 1fbe01fe  | f3845767      | 28905ebd        | ecad2386 | 7801e8d9     | 07d7df22       | a99f214a    | ddd2926e    | 44956a24       |             1 |                  2 | 15706 |   320 |    50 |  1722 |     0 |    35 |     -1 |    79 |               869 |                 5 |               1 |          999 |
+|  1 |       0 | 10000169349117863715 |      0 | 1005 |            0 | 1fbe01fe  | f3845767      | 28905ebd        | ecad2386 | 7801e8d9     | 07d7df22       | a99f214a    | 96809ac8    | 711ee120       |             1 |                  0 | 15704 |   320 |    50 |  1722 |     0 |    35 | 100084 |    79 |               869 |                 1 |               1 |          999 |
+|  2 |       0 | 10000371904215119486 |      0 | 1005 |            0 | 1fbe01fe  | f3845767      | 28905ebd        | ecad2386 | 7801e8d9     | 07d7df22       | a99f214a    | b3cf8def    | 8a4875bd       |             1 |                  0 | 15704 |   320 |    50 |  1722 |     0 |    35 | 100084 |    79 |               869 |                 1 |               1 |          999 |
+
+
+- Preprocessing: A common practice in preprocessing CTR data is Hash Trick. For each feature, hash feature's value into fixed size vector. In current processing step, we hash value into `2^16` fixed size vector. If data has `n` features, after preprocessing, we expand input dimension space into a larger output dimension space `n * 2^16`. For space efficiency, we only store index of feature's value. For example: Site ID value after hashing has index = 123, we store: `site_id: 123`.
+  - Logistic Regression and Factorization Machine: Before train and predict, we one-hot-encode input feature.
+  - FTRL and GBM: Do nothing.
+  - Example data after preprocessing: 
+
+|    |   click |    C1 |   banner_pos |   site_id |   site_domain |   site_category |   app_id |   app_domain |   app_category |   device_id |   device_ip |   device_model |   device_type |   device_conn_type |   C14 |   C15 |   C16 |   C17 |   C18 |   C19 |   C20 |   C21 |   device_id_count |   device_ip_count |   user_id_count |   hour_count |
+|---:|--------:|------:|-------------:|----------:|--------------:|----------------:|---------:|-------------:|---------------:|------------:|------------:|---------------:|--------------:|-------------------:|------:|------:|------:|------:|------:|------:|------:|------:|------------------:|------------------:|----------------:|-------------:|
+|  0 |       0 | 49542 |        38901 |      3703 |         60146 |           37267 |     4859 |          931 |          52646 |        2603 |       57603 |          65226 |         16939 |              52576 | 59061 | 26495 | 29876 | 35552 | 50048 | 42447 | 51572 | 26673 |             64040 |             26097 |           14350 |         8625 |
+|  1 |       0 | 49542 |        38901 |      3703 |         60146 |           37267 |     4859 |          931 |          52646 |        2603 |       25930 |          60692 |         16939 |              15778 | 35267 | 26495 | 29876 | 35552 | 50048 | 42447 | 15865 | 26673 |             64040 |             61530 |           14350 |         8625 |
+|  2 |       0 | 49542 |        38901 |      3703 |         60146 |           37267 |     4859 |          931 |          52646 |        2603 |       10179 |          56745 |         16939 |              15778 | 35267 | 26495 | 29876 | 35552 | 50048 | 42447 | 15865 | 26673 |             64040 |             61530 |           14350 |         8625 |
 
 # Models
 
-Below are models we use in project, sorted by priority. This is just tentative list. We can add or remove some of them later.
+Below are models we use in project. (This is just tentative list. We can add or remove some of them later).
 
-1. Logistic Regression (LR).
-2. Gradient Boosting Machine (GBM).
-3. Singular Value Decomposition (SVD).
-4. Matrix Factorization (FM).
-5. FTRL-Proximal online learning algorithm (FTRL).
-6. Neural Collaborative Filtering (NCF).
-7. Wide & Deep Learning Model (WideDeep).
+1. Logistic Regression (LR): A linear model, good for strong baseline.
+2. Gradient Boosting Machine (GBM): A non-linear model, works on various dataset. We want to check how Boosting works on this data. It is also a strong baseline too.
+3. Matrix Factorization (FM): A go-to algorithm for CTR problem. Detail of algorithm, see `docs/Introduction-of-Factorization-Machine.docx`.
+4. FTRL-Proximal online learning algorithm (FTRL): A research from Google for CTR prediction. It bases on Logistic Regression but support some useful features: Online-Learning and low memory footprint. Detail of algorithm, see `docs/???`.
 
-# Datasets and Preprocessing
+# Results
 
-## Datasets
+| Models | AUC    | LogLoss | Computation Time | Size (MB) |
+| ------ |-------:| -------:| ----------------:| ---------:|
+| LR     | 0.7059 | 0.5394  |         4h57m15s |      1.26 |
+| GBM    | 0.7049 | 0.4163  |         1h08m37s |      0.45 |
+| FM     | 0.7239 | 0.4206  |         2h31m58s |      3.79 |
+| FTRL   | 0.7182 | 0.4121  |         0h56m36s |      3.87 |
 
-List of dataset we will use. We can add more later if time allow.
-
-1. [Click-Through Rate Prediction](https://www.kaggle.com/c/avazu-ctr-prediction/data).
-2. [MovieLens 1M Dataset](https://grouplens.org/datasets/movielens/1m/).
-
-## Data Processing
-
+*Note: LR and FM take a bit longer because they require to convert index to one hot vector before training (while GBM and FTRL do not require)*
 
 # Project Structure
 
@@ -112,7 +210,7 @@ chmod 755 download-data.sh
 pip install -e .
 ```
 
-4. Run main program. Result will be in reports.
+4. Run main program. Result will be in reports/*YYYYMMDD_HHMMSS*.log.
 
 ```
 python ./main.py
