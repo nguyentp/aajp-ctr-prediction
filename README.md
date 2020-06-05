@@ -6,7 +6,7 @@ In this project, we will provide a benchmark of different Algorithms on Click-Th
 
 This project can be useful in 2 ways:
 
-1. ***Quick*** check on common technique used in CTR prediction. If you have a CTR-like dataset and you want to get a baseline score, you can try to run this project on new dataset. 
+1. ***Quick*** check on common technique used in CTR prediction. If you have a dataset similar to CTR Dataset, and you want to get a baseline score, you can try to run this project on new dataset. 
 2. Used as base project and ***can be extend*** with more advanced algorithms like (Deep Learning model) and various CTR datasets. As the first version, we will use only 1 dataset and 4 basic algoithms.
 
 # Datasets
@@ -18,15 +18,15 @@ Some common properties of CTR dataset are:
 - Categorical features are High-Cardinaliry: Number of unique values are large (normaly, thousands values).
 - Target is highly imbalance.
 
-Below we report some summary statistic to illustrate the characteristics of CTR dataset. Not only CTR, if your dataset has similar characteristics, you can try techniques in this project as well.
+For each dataset, we report some summary statistics to illustrate the characteristics of CTR dataset. If your dataset has similar characteristics, you can try techniques in this project as well.
 
 ## [Avazu Click-Through Rate](https://www.kaggle.com/c/avazu-ctr-prediction/data)
 
 - Dataset contains Online Ads informations and its label (Click or No Click) in 10 days. Algorithms have to predict Ads Click probability. Data is ordered chronologically. Data can be downloaded from Kaggle. In this project, we will use only Train data to benchmark algorithm.
 
-  - Total rows: 40,428,967 rows.
-  - Date ranges: 2014/10/21 - 2014/10/30
-  - Average number of rows-per-day: 4,042,896
+  - Total rows: 40 millions (40,428,967 rows).
+  - Date ranges: 10 days, from 2014/10/21 to 2014/10/30.
+  - Average number of rows-per-day: 4 millions (4,042,896/day).
   - Click Rate on data: 0.1698
 
 - Each rows of data has these information:
