@@ -18,7 +18,7 @@ def train_ftlr_model():
         'verbose':True
     }
     ftlr = ftlr_proximal(**params)
-    # ftlr.fit(X_train, y_train, X_val, y_val)
+    ftlr.fit(X_train, y_train, X_val, y_val)
 
     y_pred = []
     for x_val in list(X_val.values):

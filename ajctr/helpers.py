@@ -4,6 +4,7 @@
 """
 import os
 import time
+from datetime import datetime
 import shutil
 import logging
 import pickle
@@ -41,7 +42,10 @@ class Log(object):
             fmt = logging.Formatter(f'[%(asctime)s] %(message)s', datefmt='%Y-%m-%d %I:%M:%S %p')
             hdl = logging.StreamHandler()
             hdl.setFormatter(fmt)
+            file_hdl = logging.FileHandler('./reports/main_{:%Y%m%d_%H%M%S}.log'.format(datetime.now()))
+            file_hdl.setFormatter(fmt)
             logger.addHandler(hdl)
+            logger.addHandler(file_hdl)
             self.logger = logger
         return self.logger
 
