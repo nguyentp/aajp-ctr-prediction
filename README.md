@@ -38,7 +38,7 @@ Below are models we use in project, sorted by priority. This is just tentative l
 List of dataset we will use. We can add more later if time allow.
 
 1. [Click-Through Rate Prediction](https://www.kaggle.com/c/avazu-ctr-prediction/data).
-2. [MovieLens 1M Dataset](https://grouplens.org/datasets/movielens/1m/).
+2. ~~[MovieLens 1M Dataset](https://grouplens.org/datasets/movielens/1m/).~~ *temporary removed*
 
 ## Data Processing
 
@@ -118,12 +118,12 @@ pip install -e .
 python ./main.py
 ```
 # Experiment Result
-| Models | AUC    | LogLoss | Computation Time |
-| ------ |-------:| -------:| ----------------:|
-| LR     | 0.7059 | 0.5394  |         4h57m15s |
-| GBM    | 0.7049 | 0.4163  |         1h08m37s |
-| FM     | 0.7239 | 0.4206  |         2h31m58s |
-| FTRL   | 0.7182 | 0.4121  |         0h56m36s |
+| Models | AUC    | LogLoss | Computation Time | Size (MB) |
+| ------ |-------:| -------:| ----------------:| ---------:|
+| LR     | 0.7059 | 0.5394  |         4h57m15s |      1.26 |
+| GBM    | 0.7049 | 0.4163  |         1h08m37s |      0.45 |
+| FM     | 0.7239 | 0.4206  |         2h31m58s |      3.79 |
+| FTRL   | 0.7182 | 0.4121  |         0h56m36s |      3.87 |
 
 *Note: LR and FM take a bit longer because they require to convert index to one hot vector before training (while GBM and FTRL do not require)*
 
