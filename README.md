@@ -92,16 +92,51 @@ For each dataset, we report some summary statistics to illustrate the characteri
 
 # Data Processing and Feature Engineering
 
+## Avazu Click-Through Rate
+
+- Feature Extraction:
+  - Extract hour in day from `hour` column. For example: `14102100 -> 00`
+  - Extract count features for each of below columns. For example: How many time we have seen `device_id == a99f214a` in data? Use only training data to estimate count features. In validation data, map count features for corresponding column.
+    - `device_id`
+    - `device_ip`
+    - `device_id + device_ip`
+    - `hour`
+  - Sample data after feature extraction:
+
+|    |   click |                   id |   hour |   C1 |   banner_pos | site_id   | site_domain   | site_category   | app_id   | app_domain   | app_category   | device_id   | device_ip   | device_model   |   device_type |   device_conn_type |   C14 |   C15 |   C16 |   C17 |   C18 |   C19 |    C20 |   C21 |   device_id_count |   device_ip_count |   user_id_count |   hour_count |
+|---:|--------:|---------------------:|-------:|-----:|-------------:|:----------|:--------------|:----------------|:---------|:-------------|:---------------|:------------|:------------|:---------------|--------------:|-------------------:|------:|------:|------:|------:|------:|------:|-------:|------:|------------------:|------------------:|----------------:|-------------:|
+|  0 |       0 |  1000009418151094273 |      0 | 1005 |            0 | 1fbe01fe  | f3845767      | 28905ebd        | ecad2386 | 7801e8d9     | 07d7df22       | a99f214a    | ddd2926e    | 44956a24       |             1 |                  2 | 15706 |   320 |    50 |  1722 |     0 |    35 |     -1 |    79 |               869 |                 5 |               1 |          999 |
+|  1 |       0 | 10000169349117863715 |      0 | 1005 |            0 | 1fbe01fe  | f3845767      | 28905ebd        | ecad2386 | 7801e8d9     | 07d7df22       | a99f214a    | 96809ac8    | 711ee120       |             1 |                  0 | 15704 |   320 |    50 |  1722 |     0 |    35 | 100084 |    79 |               869 |                 1 |               1 |          999 |
+|  2 |       0 | 10000371904215119486 |      0 | 1005 |            0 | 1fbe01fe  | f3845767      | 28905ebd        | ecad2386 | 7801e8d9     | 07d7df22       | a99f214a    | b3cf8def    | 8a4875bd       |             1 |                  0 | 15704 |   320 |    50 |  1722 |     0 |    35 | 100084 |    79 |               869 |                 1 |               1 |          999 |
+
+
+- Preprocessing: A common practice in preprocessing CTR data is Hash Trick. For each feature, hash feature's value into fixed size vector. In current processing step, we hash value into `2^16` fixed size vector. If data has `n` features, after preprocessing, we expand input dimension space into a larger output dimension space `n * 2^16`. For space efficiency, we only store index of feature's value. For example: Site ID value after hashing has index = 123, we store: `site_id: 123`.
+  - Logistic Regression and Factorization Machine: Before train and predict, we one-hot-encode input feature.
+  - FTRL and GBM: Do nothing.
+  - Example data after preprocessing: 
+
+|    |   click |    C1 |   banner_pos |   site_id |   site_domain |   site_category |   app_id |   app_domain |   app_category |   device_id |   device_ip |   device_model |   device_type |   device_conn_type |   C14 |   C15 |   C16 |   C17 |   C18 |   C19 |   C20 |   C21 |   device_id_count |   device_ip_count |   user_id_count |   hour_count |
+|---:|--------:|------:|-------------:|----------:|--------------:|----------------:|---------:|-------------:|---------------:|------------:|------------:|---------------:|--------------:|-------------------:|------:|------:|------:|------:|------:|------:|------:|------:|------------------:|------------------:|----------------:|-------------:|
+|  0 |       0 | 49542 |        38901 |      3703 |         60146 |           37267 |     4859 |          931 |          52646 |        2603 |       57603 |          65226 |         16939 |              52576 | 59061 | 26495 | 29876 | 35552 | 50048 | 42447 | 51572 | 26673 |             64040 |             26097 |           14350 |         8625 |
+|  1 |       0 | 49542 |        38901 |      3703 |         60146 |           37267 |     4859 |          931 |          52646 |        2603 |       25930 |          60692 |         16939 |              15778 | 35267 | 26495 | 29876 | 35552 | 50048 | 42447 | 15865 | 26673 |             64040 |             61530 |           14350 |         8625 |
+|  2 |       0 | 49542 |        38901 |      3703 |         60146 |           37267 |     4859 |          931 |          52646 |        2603 |       10179 |          56745 |         16939 |              15778 | 35267 | 26495 | 29876 | 35552 | 50048 | 42447 | 15865 | 26673 |             64040 |             61530 |           14350 |         8625 |
+
 # Models
 
-Below are models we use in project, sorted by priority. This is just tentative list. We can add or remove some of them later.
+Below are models we use in project. (This is just tentative list. We can add or remove some of them later).
 
-1. Logistic Regression (LR).
-2. Gradient Boosting Machine (GBM).
-3. Matrix Factorization (FM).
-4. FTRL-Proximal online learning algorithm (FTRL).
+1. Logistic Regression (LR): A linear model, good for strong baseline.
+2. Gradient Boosting Machine (GBM): A non-linear model, works on various dataset. We want to check how Boosting works on this data. It is also a strong baseline too.
+3. Matrix Factorization (FM): A go-to algorithm for CTR problem. Detail of algorithm, see below.
+4. FTRL-Proximal online learning algorithm (FTRL): A research from Google for CTR prediction. It bases on Logistic Regression but support some useful features: Online-Learning and low memory footprint. Detail of algorithm, see below.
+
+## Factorization Machine:
+
+## FTLR:
 
 # Results
+
+to be updating...
 
 # Project Structure
 
