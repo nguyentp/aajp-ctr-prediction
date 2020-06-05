@@ -127,12 +127,8 @@ Below are models we use in project. (This is just tentative list. We can add or 
 
 1. Logistic Regression (LR): A linear model, good for strong baseline.
 2. Gradient Boosting Machine (GBM): A non-linear model, works on various dataset. We want to check how Boosting works on this data. It is also a strong baseline too.
-3. Matrix Factorization (FM): A go-to algorithm for CTR problem. Detail of algorithm, see below.
-4. FTRL-Proximal online learning algorithm (FTRL): A research from Google for CTR prediction. It bases on Logistic Regression but support some useful features: Online-Learning and low memory footprint. Detail of algorithm, see below.
-
-## Factorization Machine:
-
-## FTLR:
+3. Matrix Factorization (FM): A go-to algorithm for CTR problem. Detail of algorithm, see `docs/Introduction-of-Factorization-Machine.docx`.
+4. FTRL-Proximal online learning algorithm (FTRL): A research from Google for CTR prediction. It bases on Logistic Regression but support some useful features: Online-Learning and low memory footprint. Detail of algorithm, see `docs/???`.
 
 # Results
 
