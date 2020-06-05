@@ -2,12 +2,12 @@ from ajctr.helpers import timing
 from ajctr.models.fm import train_fm_model
 from ajctr.models.logit import train_logistic_model
 from ajctr.models.boosting import train_gradientboosting_model
-from ajctr.models.ftlr import train_ftlr_model
+from ajctr.models.ftrl import train_ftrl_model
 
 
 @timing
 def train():
-    train_logistic_model()
-    train_gradientboosting_model()
-    train_fm_model()
-    train_ftlr_model()
+    #train_logistic_model()
+    #train_gradientboosting_model()
+    #train_fm_model()
+    train_ftrl_model()

@@ -5,7 +5,7 @@ from ajctr.helpers import load_processed_data, pathify, log, timing, save_pickle
 from tqdm import tqdm
 
 @timing
-def train_ftlr_model():
+def train_ftrl_model():
     X_train, y_train = load_processed_data(pathify('data', 'processed', 'avazu-cv-train.csv'), label_col='click')
     X_val, y_val = load_processed_data(pathify('data', 'processed', 'avazu-cv-val.csv'), label_col='click')
     
@@ -17,12 +17,12 @@ def train_ftlr_model():
         'num_categories':2**16, # make sure it is the same value with make_features.py
         'verbose':True
     }
-    ftlr = ftlr_proximal(**params)
-    # ftlr.fit(X_train, y_train, X_val, y_val)
+    ftrl = ftrl_proximal(**params)
+    ftrl.fit(X_train, y_train, X_val, y_val)
 
     y_pred = []
     for x_val in list(X_val.values):
-        p = ftlr.predict(x_val)
+        p = ftrl.predict(x_val)
         y_pred.append(p)
     y_pred = np.array(y_pred)
     auc_score = cal_auc(y_val, y_pred)
@@ -31,10 +31,10 @@ def train_ftlr_model():
     log_loss = cal_logloss(y_val, y_pred)
     log.info("log_loss: {:.4f}".format(log_loss))
 
-    save_pickle(ftlr, pathify('models', 'avazu-ftlr.pickle'))
-    return ftlr
+    save_pickle(ftrl, pathify('models', 'avazu-ftrl.pickle'))
+    return ftrl
 
-class ftlr_proximal(object):
+class ftrl_proximal(object):
     ''' Our main algorithm: Follow the regularized leader - proximal
 
         In short,
