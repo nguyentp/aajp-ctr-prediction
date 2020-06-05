@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.style as style
+from datetime import datetime
 
 
 __all__ = [
@@ -39,9 +40,12 @@ class Log(object):
             logger.setLevel(level)
             if logger.hasHandlers(): logger.handlers = []
             fmt = logging.Formatter(f'[%(asctime)s] %(message)s', datefmt='%Y-%m-%d %I:%M:%S %p')
+            hdlr = logging.FileHandler('reports/{:%Y%m%d_%H%M%S}.log'.format(datetime.now()))
             hdl = logging.StreamHandler()
+            hdlr.setFormatter(fmt)
             hdl.setFormatter(fmt)
             logger.addHandler(hdl)
+            logger.addHandler(hdlr)
             self.logger = logger
         return self.logger
 
