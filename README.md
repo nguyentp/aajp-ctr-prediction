@@ -23,13 +23,13 @@ We will submit this project to FPT SKU repository. To do that, we need below req
 
 Below are models we use in project, sorted by priority. This is just tentative list. We can add or remove some of them later.
 
-1. Logistic Regression (LR).
-2. Gradient Boosting Machine (GBM).
-3. Singular Value Decomposition (SVD).
-4. Matrix Factorization (FM).
-5. FTRL-Proximal online learning algorithm (FTRL).
-6. Neural Collaborative Filtering (NCF).
-7. Wide & Deep Learning Model (WideDeep).
+1. Logistic Regression (LR)
+2. Gradient Boosting Machine (GBM)
+3. Singular Value Decomposition (SVD) - *not available*
+4. Matrix Factorization (FM)
+5. FTRL-Proximal online learning algorithm (FTRL)
+6. Neural Collaborative Filtering (NCF) - *not available*
+7. Wide & Deep Learning Model (WideDeep) - *not available*
 
 # Datasets and Preprocessing
 
@@ -112,11 +112,20 @@ chmod 755 download-data.sh
 pip install -e .
 ```
 
-4. Run main program. Result will be in reports.
+4. Run main program. Result will be in reports/*YYYYMMDD_HHMMSS*.log
 
 ```
 python ./main.py
 ```
+# Experiment Result
+| Models | AUC    | LogLoss | Computation Time |
+| ------ |-------:| -------:| ----------------:|
+| LR     | 0.7059 | 0.5394  |         4h57m15s |
+| GBM    | 0.7049 | 0.4163  |         1h08m37s |
+| FM     | 0.7239 | 0.4206  |         2h31m58s |
+| FTRL   | 0.7182 | 0.4121  |         0h56m36s |
+
+*Note: LR and FM take a bit longer because they require to convert index to one hot vector before training (while GBM and FTRL do not require)*
 
 # Project Developer must know
 
