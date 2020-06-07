@@ -194,23 +194,33 @@ Below are models we use in project. (This is just tentative list. We can add or 
 
 ```
 
-# How to run entire project
+# How to run?
 
-1. Setup Environment with Anaconda and Python 3.6.
-2. Download Datasets
+We use a AWS EC2 (Instance Type: R5.2xlarge) to run this project.
+
+1. Install Anaconda and Python 3.6.
+2. Setup Conda Environment: 
+
+```
+conda env create -f environment.yml
+conda activate ctr
+```
+
+4. Download Datasets
 
 ```
 chmod 755 download-data.sh
 ./download-data.sh
 ```
 
-3. Install project in Developement mode:
+
+4. Install project in Developement mode:
 
 ```
 pip install -e .
 ```
 
-4. Run main program. Result will be in reports/*YYYYMMDD_HHMMSS*.log.
+5. Run main program. Result will be in reports/*YYYYMMDD_HHMMSS*.log.
 
 ```
 python ./main.py
