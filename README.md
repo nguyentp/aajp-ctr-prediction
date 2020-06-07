@@ -135,9 +135,9 @@ Below are models we use in project. (This is just tentative list. We can add or 
 | Models | AUC    | LogLoss | Computation Time | Size (MB) |
 | ------ |-------:| -------:| ----------------:| ---------:|
 | LR     | 0.7059 | 0.5394  |         4h57m15s |      1.26 |
-| GBM    | 0.7049 | 0.4163  |         1h08m37s |      0.45 |
-| FM     | 0.7239 | 0.4206  |         2h31m58s |      3.79 |
-| FTRL   | 0.7182 | 0.4121  |         0h56m36s |      3.87 |
+| GBM    | 0.7049 | 0.4163  |         1h08m37s |      **0.45** |
+| FM     | **0.7239** | 0.4206  |         2h31m58s |      3.79 |
+| FTRL   | 0.7182 | **0.4121**  |         **0h56m36s** |      3.87 |
 
 *Note: LR and FM take a bit longer because they require to convert index to one hot vector before training (while GBM and FTRL do not require)*
 
