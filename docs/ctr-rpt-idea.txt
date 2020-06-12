@@ -1,0 +1,61 @@
+1/ SKU: 
+- Tìm admin sku -> xin hướng dẫn/thủ tục upload tài sản lên sku. @Phuc
+- Nhớ cc mọi người + a Vinh
+
+2/ !!! Present idea
+Layout slide: cách tổ chức project làm như thế nào.
+
+Agenda
+
+- Intro
+  - Tại sao có project này, motivation, tại sao phải ngồi nghe.
+  - Giới thiệu sơ về team member: tên, skill, sở thích (hobby, professional), tính tình, gì gì vui vui.
+  - Giới thiệu sơ về project (overview trên readme).
+- Project management (simple) cycle:
+  > Họp định kỳ -> Review cv vừa rồi -> Plan task cần làm, memo -> ae pick task phù hợp skill và nguyện vọng -> tạo task & asign trên planner -> action -> commit code và review -> trở lại họp định kỳ.
+- Estimation and setup:
+  - Project Boostrap: settup project structure, viết project objective and outline: high level. làm ds nào, model nào, cần report gì, metric gì, ....
+  - Plan member resource: effort của từng thành viên trong tuần (bn giờ), giờ mtg hằng tuần.
+- Tool:
+  - Code version, review, PR tool: github.
+  - Computing: aws
+  - Communication: team, workchat.
+
+- Lesson learn:
+  - Tech:
+    - Viết code cho clean dễ hiểu cho người khác đọc. Estimate thời gian làm nhưng actual x4: refactor code vì code chạy dc nhưng khó hiểu. Learn dc cách viết code dễ hiểu, theo format chung.
+    - Cách tổ chức code khi nhiều người làm chung mà ít bị conflict nhất: structure, module.
+    - Khó khăn về sử dụng Keras framework để impl các DL model. Nhất là có bug thì debug khó trên keras, vì chưa quen code nhiều trên keras, mất thời gian debug và sửa. -> mất thời gian để làm quen và xài dc 1 công nghệ mới.
+    - Đang làm quen 1 tech mới + tự implement FM -> cực kỳ take time. nhất là bug.
+    - Consider sử dung library có impl sẵn trước để xem FM hoạt động tốt ra sao.
+    - Hiểu dc FM sâu hơn.
+    - Học dc cách xử lý data khi có quá nhiều category: hashing trick
+    - AE không xài notebook để code.
+    - Mình ko làm nhiều về phần phân tích tìm insight: mà làm nhanh eda -> model để chạy. lý do: mình cần check performance của algorithm trên dataset.
+    - Chưa làm test: Cần phải define unitest và data sanity test (check na, check output auc > 0.5) b/c time.
+    - Ko xài random seed lần này. Lý do: có nghĩ đến. ngta có thể thấy dc variation ở lần chạy. ko thể reproduce lại chính xác đến từng con số. nhưng tradeoff: expect có thể reproduce lại đến mức signicant (0.0001). mình chưa làm: chạy khoảng chừn 50 seed khác nhau -> expect std để xác định khoảng sig -> ko chạy dc vì take quá.
+
+  - Team work: 
+    - khi làm remote khó khăn: gặp khó khăn thì discuss với team khó, update nhanh tình hình task cũng ko hiệu quả.
+    - learn dc: hiểu dc phần nào cách lv, thế mạnh mỗi người -> việc kết hợp hiệu quả hơn qua thời gian.
+    - Khi làm project kiểu này: làm remote, ko ngồi chung định kỳ (ko nhất thiết phải ngồi fulltime với nhau, nhưng ít nhất tuần in-person 1-2 buổi) sẽ hiệu quả. làm hay bị cv chen vào -> gián đoạn -> bị tình trạng: on/off thường xuyên -> mất motivation -> phải warm up lại -> take time.
+    - Đòi hỏi nhìu will power, ý thức tự giác cao hơn so với đi làm việc ăn lương.
+    - Project làm ko có deadline cụ thể, có thể dời -> đâm lười.
+
+  - Others:
+    - security khi xài github vì bị bên isms sờ gáy
+
+- Cách tổ chức 1 dự án ML khác gì so với bình thường: ae chưa làm 1 project full cyle về ML ở cấp enterprise lớn nên chưa có cái nhìn chính xác dc.
+cũng chưa làm qua full engineering.
+
+  - Giống: Code control: commit , review, PR, project struture, clean code, testing.
+
+  - Khác:
+    - Nhiều risk: khó commit dc. chưa chắc implement xong thì performance sẽ tốt như mình muốn.
+    - Phải học và implement nhiều paper/model mới -> đôi khi impl xong chạy dek ra.
+    - Take time khi train model với data lớn -> solution: ae phải học thêm về framework xử lý big data (đề xuất: spark) để speed up phần này.
+    - Planning: ở mỗi iteration, thời gian ngắn -> check kq -> rồi mới plan tiếp nên làm gì.
+    - Test data: khó, nhiều scenario để test.
+    - Sử dụng và thay đổi nhiều oss.
+
+- 1 slide giới thiệu nhanh về kq project.
